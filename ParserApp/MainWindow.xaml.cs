@@ -51,7 +51,7 @@ namespace ParserApp {
             Parser parser = new ParserSpawner("simple");
             theHistory = parser.Run("1+1");
 
-            DispatcherTimer dispatcherTimer = new DispatcherTimer();
+            var dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += dispatcherTimer_Tick;
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
