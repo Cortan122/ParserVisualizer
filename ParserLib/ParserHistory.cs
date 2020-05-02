@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KурсачLib {
+namespace ParserLib {
     public class ParserHistory : IEnumerable<HistoryEntry> {
         private Stack<ParserTreeToken> stack = new Stack<ParserTreeToken>();
         private List<ParserTreeToken> state = new List<ParserTreeToken>();

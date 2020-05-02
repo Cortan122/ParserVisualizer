@@ -1,6 +1,7 @@
 *
 !*.gitignore
 !*.sln
+!*.editorconfig
 !ParserApp/
 !ParserApp/**
 !ParserLib/
