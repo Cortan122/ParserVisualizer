@@ -1,0 +1,13 @@
+*
+!*.gitignore
+!*.sln
+!ParserApp/
+!ParserApp/**
+!ParserLib/
+!ParserLib/**
+
+.vs
+.vscode
+obj
+bin
+*.csproj.user
