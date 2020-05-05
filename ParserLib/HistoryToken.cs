@@ -11,13 +11,15 @@ namespace ParserLib {
         public string Name { get; }
         public int StartPos { get; }
         public int EndPos { get; }
-        public int RecLevel { get; }
+
+        internal int RecLevel { get; }
+        public int DisplayLevel { get; internal set; }
 
         internal HistoryToken(ParserTreeToken tok) {
-            Name = tok.name;
-            StartPos = tok.startPos;
-            EndPos = tok.endPos;
-            RecLevel = tok.recLevel;
+            Name = tok.Name;
+            StartPos = tok.StartPos;
+            EndPos = tok.EndPos;
+            RecLevel = tok.RecLevel;
         }
 
         public override string ToString() {

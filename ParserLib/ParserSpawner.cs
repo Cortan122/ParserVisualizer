@@ -14,9 +14,10 @@ namespace ParserLib {
         }
 
         public override ParserHistory Run(string input) {
-            var tree = new ParserHistory(File.ReadAllText("parsers/" + this.name + ".rtf"));
+            var rtf = File.ReadAllText("parsers/" + this.name + ".rtf");
+            var tree = new ParserHistory(rtf, input);
 
-            Process process = new Process();
+            var process = new Process();
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardInput = true;

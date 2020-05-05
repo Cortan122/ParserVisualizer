@@ -1,8 +1,7 @@
 {\rtf1\ansi{\fonttbl\f0\fcharset1 Consolas;}
 {\colortbl ;\red114\green90\blue122;\red53\green92\blue125;\red197\green108\blue134;\red255\green117\blue130;}\f0\cf4
-\cf2 expression\cf4  ::= \b{}\cf2 sum\cf4 \b0 ;\par
-\cf2 sum\cf4  ::= \strike{}\b{}\cf2 product\cf4 \b0  \cf1 "+"\cf4  \b{}\cf2 sum\cf4 \b0 \strike0  | \b{}\cf2 product\cf4 \b0 ;\par
-\cf2 product\cf4  ::= \strike{}\b{}\cf2 primary\cf4 \b0  \cf1 "*"\cf4  \b{}\cf2 product\cf4 \b0 \strike0  | \b{}\cf2 primary\cf4 \b0 ;\par
-\cf2 primary\cf4  ::= \strike{}\cf1 "("\cf4  \b{}\cf2 expression\cf4 \b0  \cf1 ")"\cf4 \strike0  | \b{}\cf2 number\cf4 \b0 ;\par
+\cf2 sum\cf4  ::= \strike{}\b{}\cf2 product\cf4 \b0  \b{}\cf1 "+"\cf4 \b0  \b{}\cf2 sum\cf4 \b0 \strike0  | \b{}\cf2 product\cf4 \b0 ;\par
+\cf2 product\cf4  ::= \strike{}\b{}\cf2 primary\cf4 \b0  \b{}\cf1 "*"\cf4 \b0  \b{}\cf2 product\cf4 \b0 \strike0  | \b{}\cf2 primary\cf4 \b0 ;\par
+\cf2 primary\cf4  ::= \strike{}\b{}\cf1 "("\cf4 \b0  \b{}\cf2 sum\cf4 \b0  \b{}\cf1 ")"\cf4 \b0 \strike0  | \b{}\cf2 number\cf4 \b0 ;\par
 \cf2 number\cf4  ::= \cf3 /[0-9]+/\cf4 ;\par
 }

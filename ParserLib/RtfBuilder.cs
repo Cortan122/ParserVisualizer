@@ -16,14 +16,19 @@ namespace ParserLib {
         }
 
         private void HighlightIdentifier(ParserTreeToken t) {
-            if (t.parent == null) return;
-            var lineIndex = Array.FindIndex(lines, e => e.StartsWith("\\cf2 " + t.parent));
+            if (t.Parent == null) return;
+            var lineIndex = Array.FindIndex(lines, e => e.StartsWith("\\cf2 " + t.Parent));
+            var line = lines[lineIndex];
+
             var i = 0;
-            lines[lineIndex] = Regex.Replace(lines[lineIndex], @"\\b\{\}\\cf2 " + t.name, m => {
-                if (i++ == t.index) return @"\b \cf2 " + t.name;
-                return @"\cf2 " + t.name;
+            var regex = @"\\b\{\}(\\cf[0-9] )" + Regex.Escape(t.Name);
+            line = Regex.Replace(line, regex, m => {
+                if (i++ == t.Index) return @"\b " + m.Groups[1].Value + t.Name;
+                return m.Groups[1].Value + t.Name;
             });
-            lines[lineIndex] = lines[lineIndex].Replace("\\b{}", "");
+            line = line.Replace("\\b{}", "");
+
+            lines[lineIndex] = line;
         }
 
         private string End() {
@@ -36,6 +41,12 @@ namespace ParserLib {
                 builder.HighlightIdentifier(tok);
             }
             return builder.End();
+        }
+
+        public static IEnumerable<string> GetNames(string rtf) {
+            return rtf.Split('\n')
+                .Where(e => e.StartsWith("\\cf"))
+                .Select(e => e.Split("\\cf4")[0].Split(' ')[1]);
         }
     }
 }

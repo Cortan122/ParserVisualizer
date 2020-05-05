@@ -7,13 +7,37 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <RichTextBox x:Name="richTextBox">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="400"/>
+        </Grid.ColumnDefinitions>
+
+        <RichTextBox x:Name="richTextBox" Grid.Column="1" Grid.RowSpan="2" IsReadOnly="True">
             <FlowDocument>
                 <Paragraph>
                     <Run Text="RichTextBox"/>
                 </Paragraph>
             </FlowDocument>
         </RichTextBox>
+
+        <Canvas x:Name="canvas">
+        </Canvas>
+
+        <Slider x:Name="mainSlider" Margin="45,0,10,0" VerticalAlignment="Center" Grid.Row="1" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
+        <Button x:Name="playButton" Content="▶" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="30" Width="30" FontFamily="Segoe UI Symbol"/>
+
+        <!--
+          <Slider x:Name="mainSlider" Margin="132,0,10,0" VerticalAlignment="Center" Grid.Row="1" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
+          <Button x:Name="firstframeButton" Content="⏮" HorizontalAlignment="Left" Margin="7,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
+          <Button x:Name="prevframeButton" Content="⏪" HorizontalAlignment="Left" Margin="32,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
+          <Button x:Name="playButton" Content="▶" HorizontalAlignment="Left" Margin="57,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
+          <Button x:Name="nextframeButton" Content="⏩" HorizontalAlignment="Left" Margin="82,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
+          <Button x:Name="lastframeButton" Content="⏭" HorizontalAlignment="Left" Margin="107,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
+        -->
 
     </Grid>
 </Window>

@@ -11,8 +11,15 @@ namespace ParserLib {
     public class ParserHistory : IEnumerable<HistoryEntry> {
         private Stack<ParserTreeToken> stack = new Stack<ParserTreeToken>();
         private List<ParserTreeToken> state = new List<ParserTreeToken>();
-        private string rawRtf;
         private int prevPos = -1;
+
+        /// <summary>
+        /// Inherited parser parameters.
+        /// </summary>
+        public string OriginalRtf { get; }
+        public string InputString { get; }
+
+        public IEnumerable<string> RuleNames => RtfBuilder.GetNames(OriginalRtf);
 
         private List<HistoryEntry> history = new List<HistoryEntry>();
 
@@ -20,8 +27,9 @@ namespace ParserLib {
             return state.Select(e => e.Clone()).ToArray();
         }
 
-        internal ParserHistory(string rtf) {
-            rawRtf = rtf;
+        internal ParserHistory(string rtf, string input) {
+            OriginalRtf = rtf;
+            InputString = input;
         }
 
         public void Add(string line) {
@@ -30,21 +38,27 @@ namespace ParserLib {
             if (line == "") return;
 
             var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var pos = int.Parse(words[0].Split(':').Last()); // -1
+            var pos = int.Parse(words[0].Split(':').Last()) - 1;
 
+            var hasFailed = prevPos > pos;
             while (prevPos > pos) {
                 var t = state.Last();
+                if (t.EndPos == -1) break;
                 state.RemoveAt(state.Count - 1);
-                prevPos = t.endPos;
+                prevPos = t.EndPos;
             }
             prevPos = pos;
+
+            if (hasFailed) {
+                history.Add(new HistoryEntry(CopyState(), RtfBuilder.Build(OriginalRtf, stack)));
+            }
 
             if (words[1] == "rule.enter") {
                 var val = 0;
                 string parent = null;
                 if (stack.Count != 0) {
-                    parent = stack.Peek().name;
-                    var dict = stack.Peek().dict;
+                    parent = stack.Peek().Name;
+                    var dict = stack.Peek().Dict;
                     dict.TryGetValue(words[2], out val);
                     dict[words[2]] = val + 1;
                 }
@@ -53,15 +67,15 @@ namespace ParserLib {
                 stack.Push(t);
             } else {
                 var t = stack.Pop();
-                t.endPos = pos;
+                t.EndPos = pos;
                 if (words[1] != "rule.match") {
-                    t.endPos = -2;
+                    t.EndPos = -2;
                     var i = state.IndexOf(t);
                     state.RemoveRange(i, state.Count - i);
                 }
             }
 
-            history.Add(new HistoryEntry(CopyState(), RtfBuilder.Build(rawRtf, stack)));
+            history.Add(new HistoryEntry(CopyState(), RtfBuilder.Build(OriginalRtf, stack)));
         }
 
         public IEnumerator<HistoryEntry> GetEnumerator() => history.GetEnumerator();

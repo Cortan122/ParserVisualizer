@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <!-- <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="dotnet.exe format" />
+    <Exec Command="copy ../pre-commit ../.git/hooks" />
   </Target> -->
 
 </Project>
