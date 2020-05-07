@@ -5,10 +5,55 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ParserApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Визуализация парсеров" Height="450" Width="800" AllowDrop="true">
+
+    <Window.Resources>
+        <RoutedUICommand x:Key="TogglePauseCommand"/>
+        <RoutedUICommand x:Key="NextFrameCommand"/>
+        <RoutedUICommand x:Key="PrevFrameCommand"/>
+        <RoutedUICommand x:Key="FirstFrameCommand"/>
+        <RoutedUICommand x:Key="LastFrameCommand"/>
+        <RoutedUICommand x:Key="ReverseCommand"/>
+        <RoutedUICommand x:Key="SaveCommand"/>
+        <RoutedUICommand x:Key="LoadCommand"/>
+    </Window.Resources>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource TogglePauseCommand}" Executed="TogglePauseEvent"/>
+        <CommandBinding Command="{StaticResource NextFrameCommand}" Executed="NextFrameEvent"/>
+        <CommandBinding Command="{StaticResource PrevFrameCommand}" Executed="PrevFrameEvent"/>
+        <CommandBinding Command="{StaticResource FirstFrameCommand}" Executed="FirstFrameEvent"/>
+        <CommandBinding Command="{StaticResource LastFrameCommand}" Executed="LastFrameEvent"/>
+        <CommandBinding Command="{StaticResource ReverseCommand}" Executed="ReverseEvent"/>
+        <CommandBinding Command="{StaticResource SaveCommand}" Executed="SaveEvent"/>
+        <CommandBinding Command="{StaticResource LoadCommand}" Executed="LoadEvent"/>
+    </Window.CommandBindings>
+
+    <Window.InputBindings>
+        <KeyBinding Key="Space" Command="{StaticResource TogglePauseCommand}"/>
+        <KeyBinding Key="N" Command="{StaticResource NextFrameCommand}"/>
+        <KeyBinding Key="P" Command="{StaticResource PrevFrameCommand}"/>
+        <KeyBinding Key="Home" Command="{StaticResource FirstFrameCommand}"/>
+        <KeyBinding Key="End" Command="{StaticResource LastFrameCommand}"/>
+        <KeyBinding Key="R" Command="{StaticResource ReverseCommand}"/>
+        <KeyBinding Key="S" Command="{StaticResource SaveCommand}"/>
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{StaticResource SaveCommand}"/>
+        <KeyBinding Key="O" Command="{StaticResource LoadCommand}"/>
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="{StaticResource LoadCommand}"/>
+
+        <KeyBinding Key="J" Command="{StaticResource NextFrameCommand}"/>
+        <KeyBinding Key="K" Command="{StaticResource TogglePauseCommand}"/>
+        <KeyBinding Key="L" Command="{StaticResource PrevFrameCommand}"/>
+
+        <!-- незя тк у нас textbox -->
+        <!-- <KeyBinding Key="OemPeriod" Command="{StaticResource NextFrameCommand}"/> -->
+        <!-- <KeyBinding Key="OemComma" Command="{StaticResource PrevFrameCommand}"/> -->
+    </Window.InputBindings>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -16,7 +61,7 @@
             <ColumnDefinition Width="400"/>
         </Grid.ColumnDefinitions>
 
-        <RichTextBox x:Name="richTextBox" Grid.Column="1" Grid.RowSpan="2" IsReadOnly="True">
+        <RichTextBox x:Name="richTextBox" Grid.Column="1" Grid.RowSpan="3" IsReadOnly="True">
             <FlowDocument>
                 <Paragraph>
                     <Run Text="RichTextBox"/>
@@ -27,17 +72,35 @@
         <Canvas x:Name="canvas">
         </Canvas>
 
-        <Slider x:Name="mainSlider" Margin="45,0,10,0" VerticalAlignment="Center" Grid.Row="1" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
-        <Button x:Name="playButton" Content="▶" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="30" Width="30" FontFamily="Segoe UI Symbol"/>
+        <Slider x:Name="mainSlider" Margin="42,0,10,0" VerticalAlignment="Center" Grid.Row="2" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
+        <Button
+          x:Name="playButton" ToolTip="Воспроизведение" Content="▶" Command="{StaticResource TogglePauseCommand}" Margin="7,0,0,0"
+          HorizontalAlignment="Left" Grid.Row="2" VerticalAlignment="Center" Height="30" Width="30" FontFamily="Segoe UI Symbol"/>
 
-        <!--
-          <Slider x:Name="mainSlider" Margin="132,0,10,0" VerticalAlignment="Center" Grid.Row="1" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
-          <Button x:Name="firstframeButton" Content="⏮" HorizontalAlignment="Left" Margin="7,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
-          <Button x:Name="prevframeButton" Content="⏪" HorizontalAlignment="Left" Margin="32,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
-          <Button x:Name="playButton" Content="▶" HorizontalAlignment="Left" Margin="57,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
-          <Button x:Name="nextframeButton" Content="⏩" HorizontalAlignment="Left" Margin="82,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
-          <Button x:Name="lastframeButton" Content="⏭" HorizontalAlignment="Left" Margin="107,0,0,0" Grid.Row="1" VerticalAlignment="Center" Height="20" Width="20" FontFamily="Segoe UI Symbol"/>
-        -->
+        <DockPanel Grid.Row="1" VerticalAlignment="Center">
+            <DockPanel.Resources>
+                <Style x:Key="commonButtonStyle" TargetType="{x:Type Control}">
+                    <Setter Property="Margin" Value="7,0,0,0"/>
+                    <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+                    <Setter Property="Height" Value="20"/>
+                    <Setter Property="Width" Value="20"/>
+                </Style>
+                <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource commonButtonStyle}"/>
+                <Style TargetType="{x:Type Button}" BasedOn="{StaticResource commonButtonStyle}"/>
+            </DockPanel.Resources>
 
+            <!-- 💾🖫 🌱🌲🌳🌴🌵🌾🌿☘🍀 📂 -->
+            <Button x:Name="loadButton" ToolTip="Загрузить сохранение" Content="📂" Command="{StaticResource LoadCommand}"/>
+            <Button x:Name="saveButton" ToolTip="Сохранить" Content="💾" Command="{StaticResource SaveCommand}"/>
+            <ToggleButton x:Name="reverseButton" ToolTip="Прокрутка назад" Content="◀" Command="{StaticResource ReverseCommand}"/>
+            <Button x:Name="firstButton" ToolTip="Первый кадр" Content="⏮" Command="{StaticResource FirstFrameCommand}"/>
+            <Button x:Name="prevButton" ToolTip="Предыдущий кадр" Content="⏪" Command="{StaticResource PrevFrameCommand}"/>
+            <Button x:Name="nextButton" ToolTip="Следующий кадр" Content="⏩" Command="{StaticResource NextFrameCommand}"/>
+            <Button x:Name="lastButton" ToolTip="Последний кадр" Content="⏭" Command="{StaticResource LastFrameCommand}"/>
+
+            <TextBlock Text="Скорость:" ToolTip="(кадров в секунду)" Margin="7,0,0,0" VerticalAlignment="Center"/>
+            <TextBox x:Name="speedBox" Width="50" Margin="7,0,0,0"/>
+            <Slider x:Name="speedSlider" Maximum="60" Margin="7,0,10,0" VerticalAlignment="Center"/>
+        </DockPanel>
     </Grid>
 </Window>

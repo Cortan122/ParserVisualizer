@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,41 +16,83 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ParserLib;
 
 namespace ParserApp {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    [JsonObject(MemberSerialization.OptIn)]
     public partial class MainWindow : Window {
+        #region json properties
+        [JsonProperty]
+        private int historyIndex = 0;
+        [JsonProperty]
+        private bool isPaused = true;
+        [JsonProperty]
+        private bool isReversed = false;
+
+        [JsonProperty]
+        private double speed { get => speedSlider.Value; set => SetSpeed(value); }
+        [JsonProperty]
+        private string inputString { get => theHistory.InputString; set => RunParser(value); }
+        #endregion
+
+        private DispatcherTimer mainTimer = new DispatcherTimer();
+        private DispatcherTimer speedBoxTimer = new DispatcherTimer();
+
+        private Parser parser = new ParserSpawner("simple");
         private ParserHistory theHistory;
-        private Parser parser;
         private Dictionary<string, Brush> colorDict;
+
+        /// <summary>
+        /// настройки интерфейсов всяких
+        /// </summary>
         private readonly Brush[] colors = {
             Brushes.Green,
             Brushes.Red,
             Brushes.LightBlue,
             Brushes.Gray,
         };
+        private readonly FontFamily font = new FontFamily("Consolas");
         const int charWidth = 20;
         const int textStart = 15;
+        const string autosavePath = "./autosave.json"; // todo
 
         public MainWindow() {
             InitializeComponent();
-            Loaded += MainWindow_Loaded;
-            playButton.Click += TogglePause;
+            InitializeEvents();
+        }
+
+        private void InitializeEvents() {
+            this.Loaded += MainWindow_Loaded;
+            this.Drop += MainWindow_Drop;
             mainSlider.ValueChanged += MainSlider_ValueChanged;
+            speedSlider.ValueChanged += SpeedSlider_ValueChanged;
+
+            speedBoxTimer.Interval = TimeSpan.FromSeconds(2);
+            speedBoxTimer.Tick += (o, e) => {
+                speedBoxTimer.Stop();
+                SpeedBox_ValueChanged(o, e);
+            };
+
+            speedBox.LostFocus += SpeedBox_ValueChanged;
+            speedBox.TextChanged += (o, e) => {
+                speedBoxTimer.Stop();
+                speedBoxTimer.Start();
+            };
+            speedBox.KeyDown += (o, e) => {
+                if (e.Key == Key.Return) SpeedBox_ValueChanged(o, e);
+            };
         }
 
-        private void MainSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
-            historyIndex = (int)e.NewValue;
-            DisplayHistoryEntry();
-        }
-
-        private bool isPaused = true;
-        private void TogglePause(object sender = null, RoutedEventArgs e = null) {
-            isPaused = !isPaused;
-            playButton.Content = isPaused ? "▶" : "⏸";
+        static private ToolTip Tooltip(string content) {
+            var tt = new ToolTip();
+            tt.Content = content;
+            return tt;
         }
 
         // костыль потомучто richTextBox.Rtf = str; неработает на wpf
@@ -67,7 +111,6 @@ namespace ParserApp {
             const int fontSize = 26;
             const int top = 10;
             int pos = textStart;
-            var font = new FontFamily("Consolas");
 
             // удаляем весь старый тект (если он есть)
             foreach (var tb in canvas.Children.OfType<TextBlock>().ToList()) {
@@ -86,6 +129,37 @@ namespace ParserApp {
             }
         }
 
+        private void CanvasLegend(bool drawText = false) {
+            // удаляем все старые кружочки
+            foreach (var el in canvas.Children.OfType<Ellipse>().ToList()) {
+                canvas.Children.Remove(el);
+            }
+
+            var pos = 5;
+            foreach (var pair in colorDict) {
+                var el = new Ellipse();
+                el.Width = el.Height = 12;
+                el.Fill = pair.Value;
+                el.ToolTip = Tooltip(pair.Key);
+                Canvas.SetTop(el, pos);
+                Canvas.SetRight(el, 5);
+                canvas.Children.Add(el);
+
+                if (drawText) {
+                    var txt = new TextBlock();
+                    txt.FontSize = 12;
+                    txt.Text = pair.Key;
+                    txt.FontFamily = font;
+                    Canvas.SetTop(txt, pos);
+                    Canvas.SetRight(txt, 20);
+                    canvas.Children.Add(txt);
+                }
+
+                pos += 19;
+            }
+
+        }
+
         private void CanvasDrawRect(HistoryToken tok, int pos) {
             var rect = new Border();
             rect.CornerRadius = new CornerRadius(5, 5, 5, 5);
@@ -98,9 +172,7 @@ namespace ParserApp {
             rect.Background = colorDict[tok.Name];
             rect.Height = 10;
             rect.Width = (end - tok.StartPos) * charWidth;
-            var tt = new ToolTip();
-            tt.Content = tok.Name;
-            rect.ToolTip = tt;
+            rect.ToolTip = Tooltip(tok.Name);
 
             Canvas.SetTop(rect, 50 + tok.DisplayLevel * 15);
             Canvas.SetLeft(rect, textStart + tok.StartPos * charWidth);
@@ -110,9 +182,8 @@ namespace ParserApp {
         private void DisplayHistoryEntry(HistoryEntry entry = null) {
             if (entry == null) {
                 entry = theHistory[historyIndex];
-                var tt = new ToolTip();
-                tt.Content = historyIndex.ToString();
-                mainSlider.ToolTip = tt;
+                mainSlider.ToolTip = Tooltip(historyIndex.ToString());
+                mainSlider.Value = historyIndex;
             }
             SetRtf(entry.RtfGrammar);
 
@@ -128,35 +199,187 @@ namespace ParserApp {
 
         private void RunParser(string input) {
             theHistory = parser.Run(input);
+            if (historyIndex < 0 || historyIndex >= theHistory.Count()) historyIndex = 0;
             var i = 0;
             colorDict = theHistory.RuleNames.ToDictionary(e => e, e => colors[i++]);
 
             mainSlider.Maximum = theHistory.Count() - 1;
             CanvasWrite(input);
-            historyIndex = 0;
+            CanvasLegend();
             DisplayHistoryEntry();
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-            parser = new ParserSpawner("simple");
+        private void SetSpeed(double newValue) {
+            if (newValue < 0) newValue = 0;
+            if (newValue > 60) newValue = 60;
+
+            speedBox.Text = newValue.ToString("0.###", CultureInfo.InvariantCulture);
+            speedSlider.Value = newValue;
+
+            var t = 1 / newValue;
+            var max = int.MaxValue / 1e7;
+            if (t > max || t <= 0) t = max;
+            mainTimer.Interval = TimeSpan.FromSeconds(t);
+        }
+
+        private void Load(string path = autosavePath) {
+            try {
+                var str = File.ReadAllText(path);
+                JsonConvert.PopulateObject(str, this);
+                reverseButton.IsChecked = isReversed;
+                playButton.Content = isPaused ? "▶" : "⏸";
+                playButton.ToolTip = Tooltip(isPaused ? "Воспроизведение" : "Пауза");
+            } catch (Exception) {
+                if (path == autosavePath) return;
+                MessageBox.Show(
+                    "Что-то пошло не так, и у нас не получилось загрузить файл",
+                    "Загрузка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        private void Save(string path = autosavePath) {
+            try {
+                if (path.EndsWith(".png")) {
+                    throw new NotImplementedException();
+                } else if (path.EndsWith(".svg")) {
+                    throw new NotImplementedException();
+                } else {
+                    var str = JsonConvert.SerializeObject(this, Formatting.Indented);
+                    File.WriteAllText(path, str);
+                }
+            } catch (Exception) {
+                if (path == autosavePath) return;
+                MessageBox.Show(
+                    "Что-то пошло не так, и у нас не получилось сохранить файл",
+                    "Сохранение",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+        }
+
+        #region events
+        private void MainSlider_ValueChanged(object o, EventArgs e) {
+            historyIndex = (int)mainSlider.Value;
+            DisplayHistoryEntry();
+        }
+
+        private void SpeedSlider_ValueChanged(object o, EventArgs e) {
+            SetSpeed(speedSlider.Value);
+        }
+
+        private void SpeedBox_ValueChanged(object o, EventArgs e) {
+            // есть ли какойто менее костыльный способ парсить оба стиля дабла?
+            double r = speed;
+            double.TryParse(
+                speedBox.Text.Replace(',', '.'),
+                NumberStyles.Any,
+                CultureInfo.InvariantCulture,
+                out r
+            );
+            SetSpeed(r);
+        }
+
+        private void MainWindow_Loaded(object o, EventArgs e) {
             RunParser("(1+122*2+3)");
 
-            var dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Tick += dispatcherTimer_Tick;
-            dispatcherTimer.Interval = TimeSpan.FromSeconds(.25);
-            dispatcherTimer.Start();
+            mainTimer.Tick += (o, ea) => { if (!isPaused) NextFrame(); };
+            SetSpeed(4);
+            mainTimer.Start();
         }
 
-        private int historyIndex = 0;
-        private void dispatcherTimer_Tick(object sender, EventArgs e) {
-            if (isPaused) return;
-            historyIndex++;
-            if (historyIndex == theHistory.Count()) {
-                TogglePause();
+        private void MainWindow_Drop(object o, DragEventArgs e) {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            Load(files[0]);
+        }
+
+        private void NextFrame() {
+            historyIndex += isReversed ? -1 : 1;
+
+            if (historyIndex >= theHistory.Count() || historyIndex < 0) {
+                historyIndex -= isReversed ? -1 : 1;
+                if (!isPaused) TogglePause();
                 return;
             }
-            mainSlider.Value = historyIndex;
+
             DisplayHistoryEntry();
         }
+
+        private void PrevFrame() {
+            isReversed = !isReversed;
+            NextFrame();
+            isReversed = !isReversed;
+        }
+
+        private void FirstFrame() {
+            historyIndex = !isReversed ? 0 : theHistory.Count() - 1;
+            DisplayHistoryEntry();
+        }
+
+        private void LastFrame() {
+            historyIndex = isReversed ? 0 : theHistory.Count() - 1;
+            DisplayHistoryEntry();
+        }
+
+        private void TogglePause() {
+            isPaused = !isPaused;
+            playButton.Content = isPaused ? "▶" : "⏸";
+            playButton.ToolTip = Tooltip(isPaused ? "Воспроизведение" : "Пауза");
+        }
+
+        private void Reverse() {
+            isReversed = !isReversed;
+            reverseButton.IsChecked = isReversed;
+            if (isPaused && isReversed) TogglePause();
+        }
+
+        private void NextFrameEvent(object o, EventArgs e) {
+            NextFrame();
+        }
+
+        private void PrevFrameEvent(object o, EventArgs e) {
+            PrevFrame();
+        }
+
+        private void FirstFrameEvent(object o, EventArgs e) {
+            FirstFrame();
+        }
+
+        private void LastFrameEvent(object o, EventArgs e) {
+            LastFrame();
+        }
+
+        private void TogglePauseEvent(object o, EventArgs e) {
+            TogglePause();
+        }
+
+        private void ReverseEvent(object o, EventArgs e) {
+            Reverse();
+        }
+
+        private void SaveEvent(object o, EventArgs e) {
+            var dia = new SaveFileDialog();
+            dia.Filter = "Сохранить текущее состояние (*.json)|*.json|Векторный рисунок дерева (*.svg)|*.svg|Растровый рисунок дерева (*.png)|*.png";
+            dia.DefaultExt = "json";
+            dia.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var rt = dia.ShowDialog();
+            if (rt != true) return; // так надо: !tr неработает
+            Save(dia.FileName);
+        }
+
+        private void LoadEvent(object o, EventArgs e) {
+            var dia = new OpenFileDialog();
+            dia.Filter = "Загрузить текущее состояние (*.json)|*.json";
+            dia.DefaultExt = "json";
+            dia.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var rt = dia.ShowDialog();
+            if (rt != true) return; // так надо: !tr неработает
+            Load(dia.FileName);
+        }
+        #endregion
     }
 }
