@@ -32,10 +32,22 @@ namespace ParserLib {
             InputString = input;
         }
 
+        private void SaveState() {
+            var tokens = CopyState();
+            var rtf = RtfBuilder.Build(OriginalRtf, stack);
+            var r = new HistoryEntry(tokens, rtf);
+            history.Add(r);
+        }
+
         public void Add(string line) {
             if (line == null) return;
             line = line.Trim();
             if (line == "") return;
+
+            if (line.StartsWith("eval failed: SyntaxError:")) {
+                // todo
+                return;
+            }
 
             var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var pos = int.Parse(words[0].Split(':').Last()) - 1;
@@ -44,20 +56,20 @@ namespace ParserLib {
             while (prevPos > pos) {
                 var t = state.Last();
                 if (t.EndPos == -1) break;
+                t.Parent.ChildCount--;
                 state.RemoveAt(state.Count - 1);
                 prevPos = t.EndPos;
             }
             prevPos = pos;
 
-            if (hasFailed) {
-                history.Add(new HistoryEntry(CopyState(), RtfBuilder.Build(OriginalRtf, stack)));
-            }
+            if (hasFailed) SaveState();
 
             if (words[1] == "rule.enter") {
                 var val = 0;
-                string parent = null;
+                ParserTreeToken parent = null;
                 if (stack.Count != 0) {
-                    parent = stack.Peek().Name;
+                    parent = stack.Peek();
+                    parent.ChildCount++;
                     var dict = stack.Peek().Dict;
                     dict.TryGetValue(words[2], out val);
                     dict[words[2]] = val + 1;
@@ -70,12 +82,13 @@ namespace ParserLib {
                 t.EndPos = pos;
                 if (words[1] != "rule.match") {
                     t.EndPos = -2;
+                    t.Parent.ChildCount--;
                     var i = state.IndexOf(t);
                     state.RemoveRange(i, state.Count - i);
                 }
             }
 
-            history.Add(new HistoryEntry(CopyState(), RtfBuilder.Build(OriginalRtf, stack)));
+            SaveState();
         }
 
         public IEnumerator<HistoryEntry> GetEnumerator() => history.GetEnumerator();

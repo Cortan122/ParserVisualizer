@@ -20,6 +20,13 @@ namespace ParserLib {
             CalculateDisplayLevels();
         }
 
+        private void AssignDisplayLevels() {
+            var maxRecLevel = this.Max(e => e.RecLevel);
+            foreach (var tok in this) {
+                tok.DisplayLevel = maxRecLevel - tok.RecLevel;
+            }
+        }
+
         private void CalculateDisplayLevels() {
             int[] recLvs = new int[CursorPos];
 
@@ -27,15 +34,6 @@ namespace ParserLib {
                 var end = tok.EndPos;
                 if (end == -1) end = CursorPos;
                 return new ArraySegment<int>(recLvs, tok.StartPos, end - tok.StartPos);
-            }
-
-            foreach (var tok in this)
-                foreach (ref int e in Slice(tok))
-                    e = Math.Max(e, tok.RecLevel);
-
-            int maxRecLv = recLvs.Max();
-            for (int i = 0; i < recLvs.Length; i++) {
-                recLvs[i] = maxRecLv - recLvs[i];
             }
 
             foreach (var tok in this.OrderBy(e => -e.RecLevel)) {

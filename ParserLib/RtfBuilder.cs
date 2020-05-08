@@ -17,7 +17,7 @@ namespace ParserLib {
 
         private void HighlightIdentifier(ParserTreeToken t) {
             if (t.Parent == null) return;
-            var lineIndex = Array.FindIndex(lines, e => e.StartsWith("\\cf2 " + t.Parent));
+            var lineIndex = Array.FindIndex(lines, e => e.StartsWith("\\cf2 " + t.Parent.Name));
             var line = lines[lineIndex];
 
             var i = 0;
