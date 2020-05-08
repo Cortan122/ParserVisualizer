@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -87,12 +88,15 @@ namespace ParserApp {
             speedBox.KeyDown += (o, e) => {
                 if (e.Key == Key.Return) SpeedBox_ValueChanged(o, e);
             };
-        }
 
-        static private ToolTip Tooltip(string content) {
-            var tt = new ToolTip();
-            tt.Content = content;
-            return tt;
+            inputBox.LostKeyboardFocus += InputBox_ValueChanged;
+            inputBox.KeyDown += (o, e) => {
+                if (e.Key == Key.Return) {
+                    InputBox_ValueChanged(o, e);
+                    Keyboard.ClearFocus();
+                }
+            };
+            inputBox.GotKeyboardFocus += (o, e) => { inputBox.Opacity = 1; };
         }
 
         // костыль потомучто richTextBox.Rtf = str; неработает на wpf
@@ -127,6 +131,12 @@ namespace ParserApp {
                 canvas.Children.Add(txt);
                 pos += charWidth;
             }
+
+            Canvas.SetTop(inputBox, top);
+            Canvas.SetLeft(inputBox, textStart);
+            inputBox.Width = pos - textStart;
+            inputBox.Height = fontSize;
+            inputBox.FontSize = fontSize - 8;
         }
 
         private void CanvasLegend(bool drawText = false) {
@@ -135,12 +145,17 @@ namespace ParserApp {
                 canvas.Children.Remove(el);
             }
 
+            // удаляем все старые подписи
+            foreach (var tb in canvas.Children.OfType<TextBlock>().ToList()) {
+                if (tb.FontSize == 12) canvas.Children.Remove(tb);
+            }
+
             var pos = 5;
             foreach (var pair in colorDict) {
                 var el = new Ellipse();
                 el.Width = el.Height = 12;
                 el.Fill = pair.Value;
-                el.ToolTip = Tooltip(pair.Key);
+                el.ToolTip = pair.Key;
                 Canvas.SetTop(el, pos);
                 Canvas.SetRight(el, 5);
                 canvas.Children.Add(el);
@@ -172,7 +187,9 @@ namespace ParserApp {
             rect.Background = colorDict[tok.Name];
             rect.Height = 10;
             rect.Width = (end - tok.StartPos) * charWidth;
-            rect.ToolTip = Tooltip(tok.Name);
+            rect.ToolTip = tok.Name;
+
+            if (tok.Trimmable) rect.Opacity = .5;
 
             Canvas.SetTop(rect, 50 + tok.DisplayLevel * 15);
             Canvas.SetLeft(rect, textStart + tok.StartPos * charWidth);
@@ -182,7 +199,7 @@ namespace ParserApp {
         private void DisplayHistoryEntry(HistoryEntry entry = null) {
             if (entry == null) {
                 entry = theHistory[historyIndex];
-                mainSlider.ToolTip = Tooltip(historyIndex.ToString());
+                mainSlider.ToolTip = historyIndex.ToString();
                 mainSlider.Value = historyIndex;
             }
             SetRtf(entry.RtfGrammar);
@@ -198,10 +215,17 @@ namespace ParserApp {
         }
 
         private void RunParser(string input) {
+            double historyProgress = 0;
+            if (theHistory != null) {
+                historyProgress = historyIndex / (double)(theHistory.Count() - 1);
+            }
+
+            inputBox.Text = input;
             theHistory = parser.Run(input);
-            if (historyIndex < 0 || historyIndex >= theHistory.Count()) historyIndex = 0;
             var i = 0;
             colorDict = theHistory.RuleNames.ToDictionary(e => e, e => colors[i++]);
+
+            historyIndex = (int)(historyProgress * (theHistory.Count() - 1));
 
             mainSlider.Maximum = theHistory.Count() - 1;
             CanvasWrite(input);
@@ -228,7 +252,7 @@ namespace ParserApp {
                 JsonConvert.PopulateObject(str, this);
                 reverseButton.IsChecked = isReversed;
                 playButton.Content = isPaused ? "▶" : "⏸";
-                playButton.ToolTip = Tooltip(isPaused ? "Воспроизведение" : "Пауза");
+                playButton.ToolTip = isPaused ? "Воспроизведение" : "Пауза";
             } catch (Exception) {
                 if (path == autosavePath) return;
                 MessageBox.Show(
@@ -243,9 +267,13 @@ namespace ParserApp {
         private void Save(string path = autosavePath) {
             try {
                 if (path.EndsWith(".png")) {
-                    throw new NotImplementedException();
+                    CanvasLegend(true);
+                    ExportToPng(path, canvas);
+                    CanvasLegend(false);
                 } else if (path.EndsWith(".svg")) {
                     throw new NotImplementedException();
+                } else if (path.EndsWith(".xaml")) {
+                    File.WriteAllText(path, XamlWriter.Save(canvas));
                 } else {
                     var str = JsonConvert.SerializeObject(this, Formatting.Indented);
                     File.WriteAllText(path, str);
@@ -283,8 +311,13 @@ namespace ParserApp {
             SetSpeed(r);
         }
 
+        private void InputBox_ValueChanged(object o, EventArgs e) {
+            inputBox.Opacity = 0;
+            inputString = inputBox.Text;
+        }
+
         private void MainWindow_Loaded(object o, EventArgs e) {
-            RunParser("(1+122*2+3)");
+            RunParser("2*4+6");
 
             mainTimer.Tick += (o, ea) => { if (!isPaused) NextFrame(); };
             SetSpeed(4);
@@ -328,7 +361,7 @@ namespace ParserApp {
         private void TogglePause() {
             isPaused = !isPaused;
             playButton.Content = isPaused ? "▶" : "⏸";
-            playButton.ToolTip = Tooltip(isPaused ? "Воспроизведение" : "Пауза");
+            playButton.ToolTip = isPaused ? "Воспроизведение" : "Пауза";
         }
 
         private void Reverse() {
@@ -363,8 +396,9 @@ namespace ParserApp {
 
         private void SaveEvent(object o, EventArgs e) {
             var dia = new SaveFileDialog();
-            dia.Filter = "Сохранить текущее состояние (*.json)|*.json|Векторный рисунок дерева (*.svg)|*.svg|Растровый рисунок дерева (*.png)|*.png";
+            dia.Filter = "Сохранить текущее состояние (*.json)|*.json|Векторный рисунок дерева (*.xaml)|*.xaml|Растровый рисунок дерева (*.png)|*.png";
             dia.DefaultExt = "json";
+            dia.FileName = "tree.png";
             dia.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             var rt = dia.ShowDialog();
             if (rt != true) return; // так надо: !tr неработает
@@ -381,5 +415,38 @@ namespace ParserApp {
             Load(dia.FileName);
         }
         #endregion
+
+        static private void ExportToPng(string path, FrameworkElement element) {
+            if (path == null) return;
+
+            // Save current canvas transform
+            Transform transform = element.LayoutTransform;
+            // reset current transform (in case it is scaled or rotated)
+            element.LayoutTransform = null;
+
+            // Get the size of canvas
+            Size size = new Size(element.ActualWidth, element.ActualHeight);
+            // Measure and arrange the surface
+            // VERY IMPORTANT
+            element.Measure(size);
+            element.Arrange(new Rect(size));
+
+            // Create a render bitmap and push the surface to it
+            RenderTargetBitmap renderBitmap = new RenderTargetBitmap((int)size.Width, (int)size.Height, 96d, 96d, PixelFormats.Pbgra32);
+            renderBitmap.Render(element);
+
+            // Create a file stream for saving image
+            using (FileStream outStream = new FileStream(path, FileMode.Create)) {
+                // Use png encoder for our data
+                PngBitmapEncoder encoder = new PngBitmapEncoder();
+                // push the rendered bitmap to it
+                encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+                // save the data to the stream
+                encoder.Save(outStream);
+            }
+
+            // Restore previously saved layout
+            element.LayoutTransform = transform;
+        }
     }
 }

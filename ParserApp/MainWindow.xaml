@@ -61,15 +61,10 @@
             <ColumnDefinition Width="400"/>
         </Grid.ColumnDefinitions>
 
-        <RichTextBox x:Name="richTextBox" Grid.Column="1" Grid.RowSpan="3" IsReadOnly="True">
-            <FlowDocument>
-                <Paragraph>
-                    <Run Text="RichTextBox"/>
-                </Paragraph>
-            </FlowDocument>
-        </RichTextBox>
+        <RichTextBox x:Name="richTextBox" Grid.Column="1" Grid.RowSpan="3" IsReadOnly="True" Panel.ZIndex="1"/>
 
         <Canvas x:Name="canvas">
+            <TextBox x:Name="inputBox" Opacity="0" Panel.ZIndex="1"/>
         </Canvas>
 
         <Slider x:Name="mainSlider" Margin="42,0,10,0" VerticalAlignment="Center" Grid.Row="2" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
@@ -99,7 +94,7 @@
             <Button x:Name="lastButton" ToolTip="Последний кадр" Content="⏭" Command="{StaticResource LastFrameCommand}"/>
 
             <TextBlock Text="Скорость:" ToolTip="(кадров в секунду)" Margin="7,0,0,0" VerticalAlignment="Center"/>
-            <TextBox x:Name="speedBox" Width="50" Margin="7,0,0,0"/>
+            <TextBox x:Name="speedBox" Width="40" Margin="7,0,0,0"/>
             <Slider x:Name="speedSlider" Maximum="60" Margin="7,0,10,0" VerticalAlignment="Center"/>
         </DockPanel>
     </Grid>
