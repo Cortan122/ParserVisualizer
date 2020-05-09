@@ -7,6 +7,8 @@
 !ParserApp/**
 !ParserLib/
 !ParserLib/**
+!pdfs/
+!pdfs/**
 
 .vs
 .vscode
