@@ -30,26 +30,24 @@ namespace ParserLib {
         private void CalculateDisplayLevels() {
             int[] recLvs = new int[CursorPos];
 
-            Span<int> Slice(HistoryToken tok) {
+            foreach (var tok in this.OrderBy(e => -e.RecLevel)) {
                 var end = tok.EndPos;
                 if (end == -1) end = CursorPos;
-                return new ArraySegment<int>(recLvs, tok.StartPos, end - tok.StartPos);
-            }
-
-            foreach (var tok in this.OrderBy(e => -e.RecLevel)) {
-                tok.DisplayLevel = Slice(tok).ToArray().Max();
-                foreach (ref int e in Slice(tok))
-                    e = tok.DisplayLevel + 1;
+                var slice = new ArraySegment<int>(recLvs, tok.StartPos, end - tok.StartPos);
+                tok.DisplayLevel = slice.Max();
+                for (int i = tok.StartPos; i < end; i++) {
+                    recLvs[i] = tok.DisplayLevel + 1;
+                }
             }
         }
 
         // todo: public SortLevels
         public override string ToString() {
-            return string.Join(' ', (object[])TreeRanges);
+            return string.Join(" ", (object[])TreeRanges);
         }
 
         public IEnumerator<HistoryToken> GetEnumerator() {
-            return TreeRanges.Where(e => !e.Name.StartsWith('"')).GetEnumerator();
+            return TreeRanges.Where(e => !e.Name.StartsWith("\"")).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() {

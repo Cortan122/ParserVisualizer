@@ -49,7 +49,7 @@ namespace ParserLib {
                 return;
             }
 
-            var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var words = line.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
             var pos = int.Parse(words[0].Split(':').Last()) - 1;
 
             var hasFailed = prevPos > pos;

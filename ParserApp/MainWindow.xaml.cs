@@ -319,7 +319,7 @@ namespace ParserApp {
         private void MainWindow_Loaded(object o, EventArgs e) {
             RunParser("2*4+6");
 
-            mainTimer.Tick += (o, ea) => { if (!isPaused) NextFrame(); };
+            mainTimer.Tick += (ob, ea) => { if (!isPaused) NextFrame(); };
             SetSpeed(4);
             mainTimer.Start();
         }

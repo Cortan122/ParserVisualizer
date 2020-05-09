@@ -32,7 +32,7 @@ namespace ParserLib {
         }
 
         private string End() {
-            return string.Join('\n', lines).Replace("{}", "0");
+            return string.Join("\n", lines).Replace("{}", "0");
         }
 
         public static string Build(string rtf, IEnumerable<ParserTreeToken> tokens) {
@@ -46,7 +46,7 @@ namespace ParserLib {
         public static IEnumerable<string> GetNames(string rtf) {
             return rtf.Split('\n')
                 .Where(e => e.StartsWith("\\cf"))
-                .Select(e => e.Split("\\cf4")[0].Split(' ')[1]);
+                .Select(e => e.Split(new string[] { "\\cf4" }, StringSplitOptions.None)[0].Split(' ')[1]);
         }
     }
 }
