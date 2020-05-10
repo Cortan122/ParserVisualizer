@@ -11,4 +11,11 @@ dotnet.exe format --files "$(echo "$FILES" | tr '\n' ',')"
 
 echo "$FILES" | tr '\n' '\0' | xargs -0 git add
 
+dotnet.exe build --configuration Release || exit 1
+rm -f ParserApp/bin/Release/net45/*.pdb ParserApp/bin/Release/net45/*.exe.config
+cd ParserApp/bin/Release/net45
+zip -r ../../../../pdfs/Program.zip ./*
+cd ../../../../
+git add pdfs/Program.zip
+
 exit 0
