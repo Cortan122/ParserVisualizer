@@ -43,6 +43,8 @@ namespace ParserApp {
         private string inputString { get => theHistory.InputString; set => RunParser(value); }
         #endregion
 
+        private int tutorialIndex;
+
         private DispatcherTimer mainTimer = new DispatcherTimer();
         private DispatcherTimer speedBoxTimer = new DispatcherTimer();
 
@@ -67,10 +69,12 @@ namespace ParserApp {
         public MainWindow() {
             InitializeComponent();
             InitializeEvents();
+
+            speed = 4;
+            SelectTutorialPage(0);
         }
 
         private void InitializeEvents() {
-            this.Loaded += MainWindow_Loaded;
             this.Drop += MainWindow_Drop;
             mainSlider.ValueChanged += MainSlider_ValueChanged;
             speedSlider.ValueChanged += SpeedSlider_ValueChanged;
@@ -98,6 +102,31 @@ namespace ParserApp {
                 }
             };
             inputBox.GotKeyboardFocus += (o, e) => { inputBox.Opacity = 1; };
+
+            mainTimer.Tick += (ob, ea) => { if (!isPaused) NextFrame(); };
+            mainTimer.Start();
+        }
+
+        private void SelectTutorialPage(int i) {
+            try {
+                if (!File.Exists($"./tutorials/{i}.rtf")) return;
+                using (var fs = File.OpenRead($"./tutorials/{i}.rtf")) {
+                    tutorialBox.SelectAll();
+                    tutorialBox.Selection.Load(fs, DataFormats.Rtf);
+                }
+                if (File.Exists($"./tutorials/{i}.json")) Load($"./tutorials/{i}.json");
+
+                tutorialIndex = i;
+                prevTutorialButton.IsEnabled = tutorialIndex != 0;
+                nextTutorialButton.IsEnabled = File.Exists($"./tutorials/{i + 1}.rtf");
+            } catch (Exception) {
+                MessageBox.Show(
+                    "Что-то пошло не так, и у нас не получилось загрузить туториал",
+                    "Туториал",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         // костыль потомучто richTextBox.Rtf = str; неработает на wpf
@@ -317,14 +346,6 @@ namespace ParserApp {
             inputString = inputBox.Text;
         }
 
-        private void MainWindow_Loaded(object o, EventArgs e) {
-            RunParser("2*4+6");
-
-            mainTimer.Tick += (ob, ea) => { if (!isPaused) NextFrame(); };
-            SetSpeed(4);
-            mainTimer.Start();
-        }
-
         private void MainWindow_Drop(object o, DragEventArgs e) {
             if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
@@ -415,6 +436,15 @@ namespace ParserApp {
             if (rt != true) return; // так надо: !tr неработает
             Load(dia.FileName);
         }
+
+        private void NextTutorialEvent(object o, EventArgs e) {
+            SelectTutorialPage(tutorialIndex + 1);
+        }
+
+        private void PrevTutorialEvent(object o, EventArgs e) {
+            SelectTutorialPage(tutorialIndex - 1);
+        }
+
         #endregion
 
         static private void ExportToPng(string path, FrameworkElement element) {

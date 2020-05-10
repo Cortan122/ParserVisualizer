@@ -16,6 +16,15 @@
         <RoutedUICommand x:Key="ReverseCommand"/>
         <RoutedUICommand x:Key="SaveCommand"/>
         <RoutedUICommand x:Key="LoadCommand"/>
+        <RoutedUICommand x:Key="NextTutorialCommand"/>
+        <RoutedUICommand x:Key="PrevTutorialCommand"/>
+
+        <Style x:Key="commonButtonStyle" TargetType="{x:Type Control}">
+            <Setter Property="Margin" Value="7,0,0,0"/>
+            <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Width" Value="20"/>
+        </Style>
     </Window.Resources>
 
     <Window.CommandBindings>
@@ -27,6 +36,8 @@
         <CommandBinding Command="{StaticResource ReverseCommand}" Executed="ReverseEvent"/>
         <CommandBinding Command="{StaticResource SaveCommand}" Executed="SaveEvent"/>
         <CommandBinding Command="{StaticResource LoadCommand}" Executed="LoadEvent"/>
+        <CommandBinding Command="{StaticResource NextTutorialCommand}" Executed="NextTutorialEvent"/>
+        <CommandBinding Command="{StaticResource PrevTutorialCommand}" Executed="PrevTutorialEvent"/>
     </Window.CommandBindings>
 
     <Window.InputBindings>
@@ -41,9 +52,9 @@
         <KeyBinding Key="O" Command="{StaticResource LoadCommand}"/>
         <KeyBinding Key="O" Modifiers="Ctrl" Command="{StaticResource LoadCommand}"/>
 
-        <KeyBinding Key="J" Command="{StaticResource NextFrameCommand}"/>
+        <KeyBinding Key="L" Command="{StaticResource NextFrameCommand}"/>
         <KeyBinding Key="K" Command="{StaticResource TogglePauseCommand}"/>
-        <KeyBinding Key="L" Command="{StaticResource PrevFrameCommand}"/>
+        <KeyBinding Key="J" Command="{StaticResource PrevFrameCommand}"/>
 
         <!-- незя тк у нас textbox -->
         <!-- <KeyBinding Key="OemPeriod" Command="{StaticResource NextFrameCommand}"/> -->
@@ -52,7 +63,8 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition/>
+            <RowDefinition Height="200"/>
+            <RowDefinition />
             <RowDefinition Height="30"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
@@ -61,25 +73,29 @@
             <ColumnDefinition Width="400"/>
         </Grid.ColumnDefinitions>
 
-        <RichTextBox x:Name="richTextBox" Grid.Column="1" Grid.RowSpan="3" IsReadOnly="True" Panel.ZIndex="1"/>
+        <RichTextBox x:Name="richTextBox" Grid.Column="1" IsReadOnly="True" Panel.ZIndex="1"/>
+        <RichTextBox x:Name="tutorialBox" Grid.Column="1" IsReadOnly="True" Panel.ZIndex="1" Grid.Row="1" Grid.RowSpan="3" VerticalScrollBarVisibility="Auto"/>
 
-        <Canvas x:Name="canvas">
+        <DockPanel Grid.Column="1" Grid.Row="3" Panel.ZIndex="2" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,7">
+            <DockPanel.Resources>
+                <Style TargetType="{x:Type Button}" BasedOn="{StaticResource commonButtonStyle}"/>
+            </DockPanel.Resources>
+
+            <Button x:Name="prevTutorialButton" ToolTip="Предыдущий туториал" Content="◀" Command="{StaticResource PrevTutorialCommand}"/>
+            <Button x:Name="nextTutorialButton" ToolTip="Следующий туториал" Content="▶" Command="{StaticResource NextTutorialCommand}"/>
+        </DockPanel>
+
+        <Canvas x:Name="canvas" Grid.RowSpan="2">
             <TextBox x:Name="inputBox" Opacity="0" Panel.ZIndex="1"/>
         </Canvas>
 
-        <Slider x:Name="mainSlider" Margin="42,0,10,0" VerticalAlignment="Center" Grid.Row="2" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
+        <Slider x:Name="mainSlider" Margin="42,0,10,0" VerticalAlignment="Center" Grid.Row="3" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
         <Button
           x:Name="playButton" ToolTip="Воспроизведение" Content="▶" Command="{StaticResource TogglePauseCommand}" Margin="7,0,0,0"
-          HorizontalAlignment="Left" Grid.Row="2" VerticalAlignment="Center" Height="30" Width="30" FontFamily="Segoe UI Symbol"/>
+          HorizontalAlignment="Left" Grid.Row="3" VerticalAlignment="Center" Height="30" Width="30" FontFamily="Segoe UI Symbol"/>
 
-        <DockPanel Grid.Row="1" VerticalAlignment="Center">
+        <DockPanel Grid.Row="2" VerticalAlignment="Center">
             <DockPanel.Resources>
-                <Style x:Key="commonButtonStyle" TargetType="{x:Type Control}">
-                    <Setter Property="Margin" Value="7,0,0,0"/>
-                    <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
-                    <Setter Property="Height" Value="20"/>
-                    <Setter Property="Width" Value="20"/>
-                </Style>
                 <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource commonButtonStyle}"/>
                 <Style TargetType="{x:Type Button}" BasedOn="{StaticResource commonButtonStyle}"/>
             </DockPanel.Resources>
