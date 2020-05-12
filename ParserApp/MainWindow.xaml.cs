@@ -80,23 +80,35 @@ namespace ParserApp {
             speedSlider.ValueChanged += SpeedSlider_ValueChanged;
 
             speedBoxTimer.Interval = TimeSpan.FromSeconds(2);
-            speedBoxTimer.Tick += (o, e) => {
-                speedBoxTimer.Stop();
-                SpeedBox_ValueChanged(o, e);
-            };
+            speedBoxTimer.Tick += SpeedBox_ValueChanged;
 
             speedBox.LostFocus += SpeedBox_ValueChanged;
             speedBox.TextChanged += (o, e) => {
                 speedBoxTimer.Stop();
                 speedBoxTimer.Start();
+
+                double r = speed;
+                double.TryParse(
+                    speedBox.Text.Replace(',', '.'),
+                    NumberStyles.Any,
+                    CultureInfo.InvariantCulture,
+                    out r
+                );
+                if (r < 0) r = 0;
+                if (r > 60) r = 60;
+                if (r.ToString("0.###", CultureInfo.InvariantCulture) == speedBox.Text) {
+                    SpeedBox_ValueChanged(o, e);
+                }
             };
             speedBox.KeyDown += (o, e) => {
-                if (e.Key == Key.Return) SpeedBox_ValueChanged(o, e);
+                if (e.Key == Key.Return || e.Key == Key.Escape) {
+                    SpeedBox_ValueChanged(o, e);
+                }
             };
 
             inputBox.LostKeyboardFocus += InputBox_ValueChanged;
             inputBox.KeyDown += (o, e) => {
-                if (e.Key == Key.Return) {
+                if (e.Key == Key.Return || e.Key == Key.Escape) {
                     InputBox_ValueChanged(o, e);
                     Keyboard.ClearFocus();
                 }
@@ -105,6 +117,11 @@ namespace ParserApp {
 
             mainTimer.Tick += (ob, ea) => { if (!isPaused) NextFrame(); };
             mainTimer.Start();
+
+            RoutedEventHandler t = (ob, ea) => DisplayHistoryEntry();
+            trimTreeButton.Click += t;
+            oriTreeButton.Click += t;
+            gravTreeButton.Click += t;
         }
 
         private void SelectTutorialPage(int i) {
@@ -232,6 +249,11 @@ namespace ParserApp {
                 mainSlider.ToolTip = historyIndex.ToString();
                 mainSlider.Value = historyIndex;
             }
+            entry.SetSettings(
+                (bool)trimTreeButton.IsChecked,
+                (bool)oriTreeButton.IsChecked,
+                (bool)gravTreeButton.IsChecked
+            );
             SetRtf(entry.RtfGrammar);
 
             // удаляем строе дерево
@@ -330,6 +352,7 @@ namespace ParserApp {
         }
 
         private void SpeedBox_ValueChanged(object o, EventArgs e) {
+            speedBoxTimer.Stop();
             // есть ли какойто менее костыльный способ парсить оба стиля дабла?
             double r = speed;
             double.TryParse(
@@ -422,8 +445,13 @@ namespace ParserApp {
             dia.DefaultExt = "json";
             dia.FileName = "tree.png";
             dia.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+            var t = isPaused;
+            isPaused = true;
             var rt = dia.ShowDialog();
+            isPaused = t;
             if (rt != true) return; // так надо: !tr неработает
+
             Save(dia.FileName);
         }
 
@@ -432,8 +460,13 @@ namespace ParserApp {
             dia.Filter = "Загрузить текущее состояние (*.json)|*.json";
             dia.DefaultExt = "json";
             dia.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+            var t = isPaused;
+            isPaused = true;
             var rt = dia.ShowDialog();
+            isPaused = t;
             if (rt != true) return; // так надо: !tr неработает
+
             Load(dia.FileName);
         }
 

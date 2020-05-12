@@ -21,6 +21,7 @@ namespace ParserLib {
             StartPos = tok.StartPos;
             EndPos = tok.EndPos;
             RecLevel = tok.RecLevel;
+            DisplayLevel = RecLevel;
             Trimmable = tok.ChildCount == 1 && tok.EndPos >= 0;
         }
 

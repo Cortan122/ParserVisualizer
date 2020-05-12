@@ -13,28 +13,39 @@ namespace ParserLib {
         public string RtfGrammar { get; }
         public int CursorPos { get; }
 
+        private bool isTrimmed = false;
+
         internal HistoryEntry(HistoryToken[] ranges, string rtf) {
             RtfGrammar = rtf;
             TreeRanges = ranges;
             CursorPos = TreeRanges.Max(e => Math.Max(e.StartPos, e.EndPos - 1)) + 1;
-            CalculateDisplayLevels();
         }
 
-        private void AssignDisplayLevels() {
-            var maxRecLevel = this.Max(e => e.RecLevel);
+        public void SetSettings(bool trim, bool orientation, bool gravity) {
+            isTrimmed = trim;
+            CalculateDisplayLevels(orientation ^ gravity);
+            if (gravity) InvertDisplayLevels();
+        }
+
+        private void InvertDisplayLevels() {
+            var maxDisplayLevel = this.Max(e => e.DisplayLevel);
             foreach (var tok in this) {
-                tok.DisplayLevel = maxRecLevel - tok.RecLevel;
+                tok.DisplayLevel = maxDisplayLevel - tok.DisplayLevel;
             }
         }
 
-        private void CalculateDisplayLevels() {
+        private void CalculateDisplayLevels(bool orientation = false) {
             int[] recLvs = new int[CursorPos];
 
-            foreach (var tok in this.OrderBy(e => -e.RecLevel)) {
+            IEnumerable<HistoryToken> t = this.OrderBy(e => -e.RecLevel);
+            if (orientation) t = t.Reverse();
+            foreach (var tok in t) {
                 var end = tok.EndPos;
                 if (end == -1) end = CursorPos;
+
                 var slice = new ArraySegment<int>(recLvs, tok.StartPos, end - tok.StartPos);
                 tok.DisplayLevel = slice.Max();
+
                 for (int i = tok.StartPos; i < end; i++) {
                     recLvs[i] = tok.DisplayLevel + 1;
                 }
@@ -47,7 +58,9 @@ namespace ParserLib {
         }
 
         public IEnumerator<HistoryToken> GetEnumerator() {
-            return TreeRanges.Where(e => !e.Name.StartsWith("\"")).GetEnumerator();
+            var t = TreeRanges.Where(e => !e.Name.StartsWith("\""));
+            if (isTrimmed) t = t.Where(e => !e.Trimmable);
+            return t.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() {

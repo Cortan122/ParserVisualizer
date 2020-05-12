@@ -66,7 +66,8 @@
             <RowDefinition Height="200"/>
             <RowDefinition />
             <RowDefinition Height="30"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="30"/> <!-- 20+30 = 50 -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -74,25 +75,35 @@
         </Grid.ColumnDefinitions>
 
         <RichTextBox x:Name="richTextBox" Grid.Column="1" IsReadOnly="True" Panel.ZIndex="1"/>
-        <RichTextBox x:Name="tutorialBox" Grid.Column="1" IsReadOnly="True" Panel.ZIndex="1" Grid.Row="1" Grid.RowSpan="3" VerticalScrollBarVisibility="Auto"/>
+        <RichTextBox x:Name="tutorialBox" Grid.Column="1" IsReadOnly="True" Panel.ZIndex="1" Grid.Row="1" Grid.RowSpan="3" VerticalScrollBarVisibility="Auto" BorderBrush="#FFABADB3"/>
 
-        <DockPanel Grid.Column="1" Grid.Row="3" Panel.ZIndex="2" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,7">
-            <DockPanel.Resources>
-                <Style TargetType="{x:Type Button}" BasedOn="{StaticResource commonButtonStyle}"/>
-            </DockPanel.Resources>
+        <Border Grid.Column="1" Grid.Row="4" Panel.ZIndex="2" BorderBrush="#ABADB3" BorderThickness="1,0,0,0">
+            <DockPanel HorizontalAlignment="Left">
+                <DockPanel.Resources>
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource commonButtonStyle}"/>
+                    <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource commonButtonStyle}"/>
+                </DockPanel.Resources>
 
-            <Button x:Name="prevTutorialButton" ToolTip="Предыдущий туториал" Content="◀" Command="{StaticResource PrevTutorialCommand}"/>
-            <Button x:Name="nextTutorialButton" ToolTip="Следующий туториал" Content="▶" Command="{StaticResource NextTutorialCommand}"/>
-        </DockPanel>
+                <Button x:Name="prevTutorialButton" ToolTip="Предыдущий туториал" Content="◀" Command="{StaticResource PrevTutorialCommand}"/>
+                <Button x:Name="nextTutorialButton" ToolTip="Следующий туториал" Content="▶" Command="{StaticResource NextTutorialCommand}"/>
+                <ToggleButton x:Name="trimTreeButton" ToolTip="Подровнять дерево" Content="🌴"/>
+                <ToggleButton x:Name="oriTreeButton" ToolTip="Поменять ориентацию дерева" Content="🌲" RenderTransformOrigin="0.5,0.5">
+                    <ToggleButton.RenderTransform>
+                        <RotateTransform Angle="-180"/>
+                    </ToggleButton.RenderTransform>
+                </ToggleButton>
+                <ToggleButton x:Name="gravTreeButton" ToolTip="Поменять гравитацию дерева" Content="🌌"/>
+            </DockPanel>
+        </Border>
 
         <Canvas x:Name="canvas" Grid.RowSpan="2">
             <TextBox x:Name="inputBox" Opacity="0" Panel.ZIndex="1"/>
         </Canvas>
 
-        <Slider x:Name="mainSlider" Margin="42,0,10,0" VerticalAlignment="Center" Grid.Row="3" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1"/>
+        <Slider x:Name="mainSlider" Margin="42,0,10,0" VerticalAlignment="Center" Grid.Row="3" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1" Grid.RowSpan="2"/>
         <Button
           x:Name="playButton" ToolTip="Воспроизведение" Content="▶" Command="{StaticResource TogglePauseCommand}" Margin="7,0,0,0"
-          HorizontalAlignment="Left" Grid.Row="3" VerticalAlignment="Center" Height="30" Width="30" FontFamily="Segoe UI Symbol"/>
+          HorizontalAlignment="Left" Grid.Row="3" VerticalAlignment="Center" Height="30" Width="30" FontFamily="Segoe UI Symbol" Grid.RowSpan="2"/>
 
         <DockPanel Grid.Row="2" VerticalAlignment="Center">
             <DockPanel.Resources>
@@ -100,8 +111,8 @@
                 <Style TargetType="{x:Type Button}" BasedOn="{StaticResource commonButtonStyle}"/>
             </DockPanel.Resources>
 
-            <!-- 💾🖫 🌱🌲🌳🌴🌵🌾🌿☘🍀 📂 -->
-            <Button x:Name="loadButton" ToolTip="Загрузить сохранение" Content="📂" Command="{StaticResource LoadCommand}"/>
+            <!-- 💾🖫 🌱🌲🌳🌴 🌵🌾🌿☘🍀 📂 -->
+            <Button x:Name="loadButton" ToolTip="Загрузить сохранение" Content="&#x0001f4c2;" Command="{StaticResource LoadCommand}"/>
             <Button x:Name="saveButton" ToolTip="Сохранить" Content="💾" Command="{StaticResource SaveCommand}"/>
             <ToggleButton x:Name="reverseButton" ToolTip="Прокрутка назад" Content="◀" Command="{StaticResource ReverseCommand}"/>
             <Button x:Name="firstButton" ToolTip="Первый кадр" Content="⏮" Command="{StaticResource FirstFrameCommand}"/>
