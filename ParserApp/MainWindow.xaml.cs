@@ -48,7 +48,7 @@ namespace ParserApp {
         private DispatcherTimer mainTimer = new DispatcherTimer();
         private DispatcherTimer speedBoxTimer = new DispatcherTimer();
 
-        private Parser parser = new ParserSpawner("simple");
+        private Parser parser = new Parser("simple");
         private ParserHistory theHistory;
         private Dictionary<string, Brush> colorDict;
 
