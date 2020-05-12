@@ -20,6 +20,7 @@ cd ../../../../
 git add pdfs/Program.zip
 
 cd LaTeX-documentation
+make -B TP.pdf
 make
 cd ..
 git add pdfs
