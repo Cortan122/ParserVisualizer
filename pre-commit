@@ -3,6 +3,7 @@
 # to install:
 # cp pre-commit .git/hooks
 # chmod +x .git/hooks/*
+# (но оно типа уже должно само установится)
 
 FILES="$(git diff --cached --name-only --diff-filter=ACM "*.cs")"
 [ -z "$FILES" ] && exit 0
@@ -17,5 +18,10 @@ cd ParserApp/bin/Release/net45
 zip -r ../../../../pdfs/Program.zip ./*
 cd ../../../../
 git add pdfs/Program.zip
+
+cd LaTeX-documentation
+make
+cd ..
+git add pdfs
 
 exit 0

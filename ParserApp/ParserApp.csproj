@@ -20,8 +20,8 @@
     <ProjectReference Include="..\ParserLib\ParserLib.csproj" />
   </ItemGroup>
 
-  <!-- <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="copy ../pre-commit ../.git/hooks" />
-  </Target> -->
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="copy /Y ..\pre-commit ..\.git\hooks" />
+  </Target>
 
 </Project>
