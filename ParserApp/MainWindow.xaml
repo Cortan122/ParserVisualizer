@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ParserApp"
+        xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
         mc:Ignorable="d"
         Title="Визуализация парсеров" Height="450" Width="800" AllowDrop="true">
 
@@ -75,7 +76,7 @@
         </Grid.ColumnDefinitions>
 
         <RichTextBox x:Name="richTextBox" Grid.Column="1" IsReadOnly="True" Panel.ZIndex="1"/>
-        <RichTextBox x:Name="tutorialBox" Grid.Column="1" IsReadOnly="True" Panel.ZIndex="1" Grid.Row="1" Grid.RowSpan="3" VerticalScrollBarVisibility="Auto" BorderBrush="#FFABADB3"/>
+        <emoji:RichTextBox x:Name="tutorialBox" Grid.Column="1" IsReadOnly="True" Panel.ZIndex="1" Grid.Row="1" Grid.RowSpan="3" VerticalScrollBarVisibility="Auto" BorderBrush="#FFABADB3"/>
 
         <Border Grid.Column="1" Grid.Row="4" Panel.ZIndex="2" BorderBrush="#ABADB3" BorderThickness="1,0,0,0">
             <DockPanel HorizontalAlignment="Left">
