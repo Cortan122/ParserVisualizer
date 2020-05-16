@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net45</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +23,7 @@
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="copy /Y ..\pre-commit ..\.git\hooks" />
+    <!-- magick convert -density 384 -background transparent logo.svg -define icon:auto-resize -colors 256 logo.ico  -->
   </Target>
 
 </Project>
