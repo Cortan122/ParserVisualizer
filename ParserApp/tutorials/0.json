@@ -1,5 +1,11 @@
 {
   "historyIndex": 0,
+  "colors": [
+    "#FF008000",
+    "#FFFF0000",
+    "#FFADD8E6",
+    "#FF808080"
+  ],
   "inputString": "2*4+6",
   "parserName": "simple"
 }

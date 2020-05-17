@@ -36,18 +36,14 @@ namespace ParserApp {
         private bool isPaused = true;
         [JsonProperty]
         private bool isReversed = false;
+        [JsonProperty]
+        private List<Brush> colors;
 
         [JsonProperty]
         private double speed {
             get => speedSlider.Value;
             set => SetSpeed(value);
         }
-        [JsonProperty]
-        private string inputString {
-            get => theHistory.InputString;
-            set => RunParser(value);
-        }
-
         [JsonProperty]
         private bool treeTrim {
             get => (bool)trimTreeButton.IsChecked;
@@ -65,12 +61,10 @@ namespace ParserApp {
         }
 
         [JsonProperty]
-        private Brush[] colors = {
-            Brushes.Green,
-            Brushes.Red,
-            Brushes.LightBlue,
-            Brushes.Gray,
-        };
+        private string inputString {
+            get => theHistory.InputString;
+            set => RunParser(value);
+        }
         #endregion
 
         private int tutorialIndex;
@@ -208,6 +202,8 @@ namespace ParserApp {
         }
 
         private void CanvasLegend(bool drawText = false) {
+            if (colors == null) return; // just in case
+
             // удаляем все старые кружочки
             foreach (var el in canvas.Children.OfType<Ellipse>().ToList()) {
                 canvas.Children.Remove(el);
@@ -222,8 +218,10 @@ namespace ParserApp {
 
             var i = 0;
             var pos = 5;
+            var originalColorsLength = colors.Count;
             foreach (var ruleName in theHistory.RuleNames) {
-                var value = colors[i++ % colors.Length];
+                if (i == colors.Count) colors.Add(colors[i % originalColorsLength]);
+                var value = colors[i];
                 colorDict[ruleName] = value;
 
                 var el = new Ellipse();
@@ -234,7 +232,13 @@ namespace ParserApp {
                 Canvas.SetRight(el, 5);
                 canvas.Children.Add(el);
 
-                // todo: изменение цветов при клике на Ellipse
+                // изменение цветов при клике на Ellipse
+                var currentIndex = i;
+                el.MouseDown += (o, e) => {
+                    var c = GetColor();
+                    if (c != null) colors[currentIndex] = c;
+                    CanvasLegend();
+                };
 
                 if (drawText) {
                     var txt = new TextBlock();
@@ -247,8 +251,10 @@ namespace ParserApp {
                 }
 
                 pos += 19;
+                i++;
             }
 
+            DisplayHistoryEntry();
         }
 
         private void CanvasDrawRect(HistoryToken tok, int pos) {
@@ -307,7 +313,6 @@ namespace ParserApp {
             mainSlider.Maximum = theHistory.Count() - 1;
             CanvasWrite(input);
             CanvasLegend();
-            DisplayHistoryEntry();
         }
 
         private void SetSpeed(double newValue) {
@@ -326,6 +331,7 @@ namespace ParserApp {
         private void Load(string path = autosavePath) {
             try {
                 var str = File.ReadAllText(path);
+                colors = null;
                 JsonConvert.PopulateObject(str, this);
                 reverseButton.IsChecked = isReversed;
                 playButton.Content = isPaused ? "▶" : "⏸";
@@ -333,7 +339,6 @@ namespace ParserApp {
 
                 // это надо если у нас в сэйве нету inputString
                 CanvasLegend();
-                DisplayHistoryEntry();
             } catch (Exception) {
                 if (path == autosavePath) return;
                 MessageBox.Show(
@@ -488,6 +493,7 @@ namespace ParserApp {
             var dia = new OpenFileDialog();
             dia.Filter = "Загрузить текущее состояние (*.json)|*.json";
             dia.DefaultExt = "json";
+            dia.FileName = "tree.json";
             dia.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
             var t = isPaused;
@@ -540,6 +546,15 @@ namespace ParserApp {
 
             // Restore previously saved layout
             element.LayoutTransform = transform;
+        }
+
+        static private Brush GetColor() {
+            var dia = new System.Windows.Forms.ColorDialog();
+            if (dia.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                var c = dia.Color;
+                return new SolidColorBrush(Color.FromArgb(c.A, c.R, c.G, c.B));
+            }
+            return null;
         }
     }
 }
