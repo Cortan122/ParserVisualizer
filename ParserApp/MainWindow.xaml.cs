@@ -38,9 +38,39 @@ namespace ParserApp {
         private bool isReversed = false;
 
         [JsonProperty]
-        private double speed { get => speedSlider.Value; set => SetSpeed(value); }
+        private double speed {
+            get => speedSlider.Value;
+            set => SetSpeed(value);
+        }
         [JsonProperty]
-        private string inputString { get => theHistory.InputString; set => RunParser(value); }
+        private string inputString {
+            get => theHistory.InputString;
+            set => RunParser(value);
+        }
+
+        [JsonProperty]
+        private bool treeTrim {
+            get => (bool)trimTreeButton.IsChecked;
+            set => trimTreeButton.IsChecked = value;
+        }
+        [JsonProperty]
+        private bool treeOrientation {
+            get => (bool)oriTreeButton.IsChecked;
+            set => oriTreeButton.IsChecked = value;
+        }
+        [JsonProperty]
+        private bool treeGravity {
+            get => (bool)gravTreeButton.IsChecked;
+            set => gravTreeButton.IsChecked = value;
+        }
+
+        [JsonProperty]
+        private Brush[] colors = {
+            Brushes.Green,
+            Brushes.Red,
+            Brushes.LightBlue,
+            Brushes.Gray,
+        };
         #endregion
 
         private int tutorialIndex;
@@ -52,15 +82,6 @@ namespace ParserApp {
         private ParserHistory theHistory;
         private Dictionary<string, Brush> colorDict;
 
-        /// <summary>
-        /// настройки интерфейсов всяких
-        /// </summary>
-        private readonly Brush[] colors = {
-            Brushes.Green,
-            Brushes.Red,
-            Brushes.LightBlue,
-            Brushes.Gray,
-        };
         private readonly FontFamily font = new FontFamily("Consolas");
         const int charWidth = 20;
         const int textStart = 15;
@@ -197,20 +218,28 @@ namespace ParserApp {
                 if (tb.FontSize == 12) canvas.Children.Remove(tb);
             }
 
+            colorDict = new Dictionary<string, Brush>();
+
+            var i = 0;
             var pos = 5;
-            foreach (var pair in colorDict) {
+            foreach (var ruleName in theHistory.RuleNames) {
+                var value = colors[i++ % colors.Length];
+                colorDict[ruleName] = value;
+
                 var el = new Ellipse();
                 el.Width = el.Height = 12;
-                el.Fill = pair.Value;
-                el.ToolTip = pair.Key;
+                el.Fill = value;
+                el.ToolTip = ruleName;
                 Canvas.SetTop(el, pos);
                 Canvas.SetRight(el, 5);
                 canvas.Children.Add(el);
 
+                // todo: изменение цветов при клике на Ellipse
+
                 if (drawText) {
                     var txt = new TextBlock();
                     txt.FontSize = 12;
-                    txt.Text = pair.Key;
+                    txt.Text = ruleName;
                     txt.FontFamily = font;
                     Canvas.SetTop(txt, pos);
                     Canvas.SetRight(txt, 20);
@@ -243,16 +272,14 @@ namespace ParserApp {
             canvas.Children.Add(rect);
         }
 
-        private void DisplayHistoryEntry(HistoryEntry entry = null) {
-            if (entry == null) {
-                entry = theHistory[historyIndex];
-                mainSlider.ToolTip = historyIndex.ToString();
-                mainSlider.Value = historyIndex;
-            }
+        private void DisplayHistoryEntry() {
+            var entry = theHistory[historyIndex];
+            mainSlider.ToolTip = historyIndex.ToString();
+            mainSlider.Value = historyIndex;
             entry.SetSettings(
-                (bool)trimTreeButton.IsChecked,
-                (bool)oriTreeButton.IsChecked,
-                (bool)gravTreeButton.IsChecked
+                treeTrim,
+                treeOrientation,
+                treeGravity
             );
             SetRtf(entry.RtfGrammar);
 
@@ -274,8 +301,6 @@ namespace ParserApp {
 
             inputBox.Text = input;
             theHistory = parser.Run(input);
-            var i = 0;
-            colorDict = theHistory.RuleNames.ToDictionary(e => e, e => colors[i++]);
 
             historyIndex = (int)(historyProgress * (theHistory.Count() - 1));
 
@@ -305,6 +330,10 @@ namespace ParserApp {
                 reverseButton.IsChecked = isReversed;
                 playButton.Content = isPaused ? "▶" : "⏸";
                 playButton.ToolTip = isPaused ? "Воспроизведение" : "Пауза";
+
+                // это надо если у нас в сэйве нету inputString
+                CanvasLegend();
+                DisplayHistoryEntry();
             } catch (Exception) {
                 if (path == autosavePath) return;
                 MessageBox.Show(
@@ -443,7 +472,7 @@ namespace ParserApp {
             var dia = new SaveFileDialog();
             dia.Filter = "Сохранить текущее состояние (*.json)|*.json|Векторный рисунок дерева (*.xaml)|*.xaml|Растровый рисунок дерева (*.png)|*.png";
             dia.DefaultExt = "json";
-            dia.FileName = "tree.png";
+            dia.FileName = "tree.json";
             dia.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
             var t = isPaused;
