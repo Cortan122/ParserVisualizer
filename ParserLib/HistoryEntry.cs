@@ -9,22 +9,43 @@ using System.Threading.Tasks;
 
 namespace ParserLib {
     public class HistoryEntry : IEnumerable<HistoryToken> {
-        public HistoryToken[] TreeRanges { get; } // can be private
+        private HistoryToken[] treeRanges;
         public string RtfGrammar { get; }
         public int CursorPos { get; }
 
         private bool isTrimmed = false;
+        private Dictionary<HistoryToken, HistoryToken> edges;
 
         internal HistoryEntry(HistoryToken[] ranges, string rtf) {
             RtfGrammar = rtf;
-            TreeRanges = ranges;
-            CursorPos = TreeRanges.Max(e => Math.Max(e.StartPos, e.EndPos - 1)) + 1;
+            treeRanges = ranges;
+            CursorPos = treeRanges.Max(e => Math.Max(e.StartPos, e.EndPos - 1)) + 1;
         }
 
         public void SetSettings(bool trim, bool orientation, bool gravity) {
             isTrimmed = trim;
             CalculateDisplayLevels(orientation ^ gravity);
             if (gravity) InvertDisplayLevels();
+            edges = null;
+        }
+
+        public Dictionary<HistoryToken, HistoryToken> GetEdges() {
+            if (this.edges != null) return this.edges;
+            var edges = new Dictionary<HistoryToken, HistoryToken>();
+            var stacks = new HistoryToken[CursorPos];
+            foreach (var tok in this.OrderBy(e => -e.RecLevel)) {
+                var end = tok.EndPos;
+                if (end == -1) end = CursorPos;
+
+                for (int i = tok.StartPos; i < end; i++) {
+                    if (stacks[i] != null) {
+                        edges[stacks[i]] = tok;
+                    }
+                    stacks[i] = tok;
+                }
+            }
+            this.edges = edges;
+            return edges;
         }
 
         private void InvertDisplayLevels() {
@@ -52,13 +73,12 @@ namespace ParserLib {
             }
         }
 
-        // todo: public SortLevels
         public override string ToString() {
-            return string.Join(" ", (object[])TreeRanges);
+            return string.Join(" ", (object[])treeRanges);
         }
 
         public IEnumerator<HistoryToken> GetEnumerator() {
-            var t = TreeRanges.Where(e => !e.Name.StartsWith("\""));
+            var t = treeRanges.Where(e => !e.Name.StartsWith("\""));
             if (isTrimmed) t = t.Where(e => !e.Trimmable);
             return t.GetEnumerator();
         }

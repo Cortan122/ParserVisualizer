@@ -59,6 +59,11 @@ namespace ParserApp {
             get => (bool)gravTreeButton.IsChecked;
             set => gravTreeButton.IsChecked = value;
         }
+        [JsonProperty]
+        private bool treeHelp {
+            get => (bool)helpTreeButton.IsChecked;
+            set => helpTreeButton.IsChecked = value;
+        }
 
         [JsonProperty]
         private string inputString {
@@ -74,11 +79,7 @@ namespace ParserApp {
 
         private Parser parser = new Parser("simple");
         private ParserHistory theHistory;
-        private Dictionary<string, Brush> colorDict;
 
-        private readonly FontFamily font = new FontFamily("Consolas");
-        const int charWidth = 20;
-        const int textStart = 15;
         const string autosavePath = "./autosave.json"; // todo
 
         public MainWindow() {
@@ -137,6 +138,7 @@ namespace ParserApp {
             trimTreeButton.Click += t;
             oriTreeButton.Click += t;
             gravTreeButton.Click += t;
+            helpTreeButton.Click += t;
         }
 
         private void SelectTutorialPage(int i) {
@@ -172,112 +174,6 @@ namespace ParserApp {
             }
         }
 
-        private void CanvasWrite(string text) {
-            // типа такая конфигурация
-            const int fontSize = 26;
-            const int top = 10;
-            int pos = textStart;
-
-            // удаляем весь старый тект (если он есть)
-            foreach (var tb in canvas.Children.OfType<TextBlock>().ToList()) {
-                canvas.Children.Remove(tb);
-            }
-
-            foreach (var chr in text) {
-                var txt = new TextBlock();
-                txt.FontSize = fontSize;
-                txt.Text = chr.ToString();
-                txt.FontFamily = font;
-                Canvas.SetTop(txt, top);
-                Canvas.SetLeft(txt, pos);
-                canvas.Children.Add(txt);
-                pos += charWidth;
-            }
-
-            Canvas.SetTop(inputBox, top);
-            Canvas.SetLeft(inputBox, textStart);
-            inputBox.Width = pos - textStart;
-            inputBox.Height = fontSize;
-            inputBox.FontSize = fontSize - 8;
-        }
-
-        private void CanvasLegend(bool drawText = false) {
-            if (colors == null) return; // just in case
-
-            // удаляем все старые кружочки
-            foreach (var el in canvas.Children.OfType<Ellipse>().ToList()) {
-                canvas.Children.Remove(el);
-            }
-
-            // удаляем все старые подписи
-            foreach (var tb in canvas.Children.OfType<TextBlock>().ToList()) {
-                if (tb.FontSize == 12) canvas.Children.Remove(tb);
-            }
-
-            colorDict = new Dictionary<string, Brush>();
-
-            var i = 0;
-            var pos = 5;
-            var originalColorsLength = colors.Count;
-            foreach (var ruleName in theHistory.RuleNames) {
-                if (i == colors.Count) colors.Add(colors[i % originalColorsLength]);
-                var value = colors[i];
-                colorDict[ruleName] = value;
-
-                var el = new Ellipse();
-                el.Width = el.Height = 12;
-                el.Fill = value;
-                el.ToolTip = ruleName;
-                Canvas.SetTop(el, pos);
-                Canvas.SetRight(el, 5);
-                canvas.Children.Add(el);
-
-                // изменение цветов при клике на Ellipse
-                var currentIndex = i;
-                el.MouseDown += (o, e) => {
-                    var c = GetColor();
-                    if (c != null) colors[currentIndex] = c;
-                    CanvasLegend();
-                };
-
-                if (drawText) {
-                    var txt = new TextBlock();
-                    txt.FontSize = 12;
-                    txt.Text = ruleName;
-                    txt.FontFamily = font;
-                    Canvas.SetTop(txt, pos);
-                    Canvas.SetRight(txt, 20);
-                    canvas.Children.Add(txt);
-                }
-
-                pos += 19;
-                i++;
-            }
-
-            DisplayHistoryEntry();
-        }
-
-        private void CanvasDrawRect(HistoryToken tok, int pos) {
-            var rect = new Border();
-            rect.CornerRadius = new CornerRadius(5, 5, 5, 5);
-            var end = tok.EndPos;
-            if (end == -1) {
-                end = pos;
-                rect.CornerRadius = new CornerRadius(5, 0, 0, 5);
-            }
-
-            rect.Background = colorDict[tok.Name];
-            rect.Height = 10;
-            rect.Width = (end - tok.StartPos) * charWidth;
-            rect.ToolTip = tok.Name;
-
-            if (tok.Trimmable) rect.Opacity = .5;
-
-            Canvas.SetTop(rect, 50 + tok.DisplayLevel * 15);
-            Canvas.SetLeft(rect, textStart + tok.StartPos * charWidth);
-            canvas.Children.Add(rect);
-        }
-
         private void DisplayHistoryEntry() {
             var entry = theHistory[historyIndex];
             mainSlider.ToolTip = historyIndex.ToString();
@@ -289,14 +185,13 @@ namespace ParserApp {
             );
             SetRtf(entry.RtfGrammar);
 
-            // удаляем строе дерево
-            foreach (var tb in canvas.Children.OfType<Border>().ToList()) {
-                canvas.Children.Remove(tb);
-            }
+            canvas.DisplayHistoryEntry(entry, treeHelp);
+        }
 
-            foreach (var tok in entry) {
-                CanvasDrawRect(tok, entry.CursorPos);
-            }
+        private void CanvasLegend(bool drawText = false) {
+            if (colors == null) return; // just in case
+            canvas.InitLegend(colors, theHistory.RuleNames, drawText);
+            DisplayHistoryEntry();
         }
 
         private void RunParser(string input) {
@@ -311,7 +206,7 @@ namespace ParserApp {
             historyIndex = (int)(historyProgress * (theHistory.Count() - 1));
 
             mainSlider.Maximum = theHistory.Count() - 1;
-            CanvasWrite(input);
+            canvas.WriteString(input);
             CanvasLegend();
         }
 
@@ -329,10 +224,12 @@ namespace ParserApp {
         }
 
         private void Load(string path = autosavePath) {
+            var colorBackup = colors;
+            colors = null;
             try {
                 var str = File.ReadAllText(path);
-                colors = null;
                 JsonConvert.PopulateObject(str, this);
+                if (colors == null) colors = colorBackup;
                 reverseButton.IsChecked = isReversed;
                 playButton.Content = isPaused ? "▶" : "⏸";
                 playButton.ToolTip = isPaused ? "Воспроизведение" : "Пауза";
@@ -347,6 +244,8 @@ namespace ParserApp {
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
+            } finally {
+                if (colors == null) colors = colorBackup;
             }
         }
 
@@ -546,15 +445,6 @@ namespace ParserApp {
 
             // Restore previously saved layout
             element.LayoutTransform = transform;
-        }
-
-        static private Brush GetColor() {
-            var dia = new System.Windows.Forms.ColorDialog();
-            if (dia.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-                var c = dia.Color;
-                return new SolidColorBrush(Color.FromArgb(c.A, c.R, c.G, c.B));
-            }
-            return null;
         }
     }
 }

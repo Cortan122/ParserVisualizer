@@ -94,12 +94,13 @@
                     </ToggleButton.RenderTransform>
                 </ToggleButton>
                 <ToggleButton x:Name="gravTreeButton" ToolTip="Поменять гравитацию дерева" Content="🌌"/>
+                <ToggleButton x:Name="helpTreeButton" ToolTip="Режим новичка" Content="📖"/>
             </DockPanel>
         </Border>
 
-        <Canvas x:Name="canvas" Grid.RowSpan="2">
+        <local:TreeCanvas x:Name="canvas" Grid.RowSpan="2">
             <TextBox x:Name="inputBox" Opacity="0" Panel.ZIndex="1"/>
-        </Canvas>
+        </local:TreeCanvas>
 
         <Slider x:Name="mainSlider" Margin="42,0,10,0" VerticalAlignment="Center" Grid.Row="3" IsSnapToTickEnabled="True" TickFrequency="1" Minimum="0" Maximum="1" Grid.RowSpan="2"/>
         <Button
