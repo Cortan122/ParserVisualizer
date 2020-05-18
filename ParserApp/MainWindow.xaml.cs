@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -296,6 +298,11 @@ namespace ParserApp {
             if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
             Load(files[0]);
+        }
+
+        private void Hyperlink_MouseLeftButtonDown(object o, EventArgs e) {
+            var hyperlink = (Hyperlink)o;
+            Process.Start(hyperlink.NavigateUri.ToString());
         }
 
         private void NextFrame() {
