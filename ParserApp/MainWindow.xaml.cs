@@ -1,26 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using ParserLib;
 
 namespace ParserApp {
@@ -30,42 +21,42 @@ namespace ParserApp {
     [JsonObject(MemberSerialization.OptIn)]
     public partial class MainWindow : Window {
         #region json properties
-        [JsonProperty]
+        [JsonProperty("historyIndex")]
         private int historyIndex = 0;
-        [JsonProperty]
+        [JsonProperty("isPaused")]
         private bool isPaused = true;
-        [JsonProperty]
+        [JsonProperty("isReversed")]
         private bool isReversed = false;
-        [JsonProperty]
+        [JsonProperty("colors")]
         private List<Brush> colors;
 
-        [JsonProperty]
+        [JsonProperty("speed")]
         private double speed {
             get => speedSlider.Value;
             set => SetSpeed(value);
         }
-        [JsonProperty]
+        [JsonProperty("treeTrim")]
         private bool treeTrim {
             get => (bool)trimTreeButton.IsChecked;
             set => trimTreeButton.IsChecked = value;
         }
-        [JsonProperty]
+        [JsonProperty("treeOrientation")]
         private bool treeOrientation {
             get => (bool)oriTreeButton.IsChecked;
             set => oriTreeButton.IsChecked = value;
         }
-        [JsonProperty]
+        [JsonProperty("treeGravity")]
         private bool treeGravity {
             get => (bool)gravTreeButton.IsChecked;
             set => gravTreeButton.IsChecked = value;
         }
-        [JsonProperty]
+        [JsonProperty("treeHelp")]
         private bool treeHelp {
             get => (bool)helpTreeButton.IsChecked;
             set => helpTreeButton.IsChecked = value;
         }
 
-        [JsonProperty]
+        [JsonProperty("inputString")]
         private string inputString {
             get => theHistory.InputString;
             set => RunParser(value);
@@ -79,8 +70,7 @@ namespace ParserApp {
 
         private Parser parser = new Parser("simple");
         private ParserHistory theHistory;
-
-        const string autosavePath = "./autosave.json"; // todo
+        private const string autosavePath = "./autosave.json"; // todo
 
         public MainWindow() {
             InitializeComponent();
@@ -91,7 +81,7 @@ namespace ParserApp {
         }
 
         private void InitializeEvents() {
-            this.Drop += MainWindow_Drop;
+            Drop += MainWindow_Drop;
             mainSlider.ValueChanged += MainSlider_ValueChanged;
             speedSlider.ValueChanged += SpeedSlider_ValueChanged;
 
@@ -103,7 +93,7 @@ namespace ParserApp {
                 speedBoxTimer.Stop();
                 speedBoxTimer.Start();
 
-                double r = speed;
+                var r = speed;
                 double.TryParse(
                     speedBox.Text.Replace(',', '.'),
                     NumberStyles.Any,
@@ -287,7 +277,7 @@ namespace ParserApp {
         private void SpeedBox_ValueChanged(object o, EventArgs e) {
             speedBoxTimer.Stop();
             // есть ли какойто менее костыльный способ парсить оба стиля дабла?
-            double r = speed;
+            var r = speed;
             double.TryParse(
                 speedBox.Text.Replace(',', '.'),
                 NumberStyles.Any,
@@ -304,7 +294,7 @@ namespace ParserApp {
 
         private void MainWindow_Drop(object o, DragEventArgs e) {
             if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
             Load(files[0]);
         }
 
@@ -418,25 +408,25 @@ namespace ParserApp {
             if (path == null) return;
 
             // Save current canvas transform
-            Transform transform = element.LayoutTransform;
+            var transform = element.LayoutTransform;
             // reset current transform (in case it is scaled or rotated)
             element.LayoutTransform = null;
 
             // Get the size of canvas
-            Size size = new Size(element.ActualWidth, element.ActualHeight);
+            var size = new Size(element.ActualWidth, element.ActualHeight);
             // Measure and arrange the surface
             // VERY IMPORTANT
             element.Measure(size);
             element.Arrange(new Rect(size));
 
             // Create a render bitmap and push the surface to it
-            RenderTargetBitmap renderBitmap = new RenderTargetBitmap((int)size.Width, (int)size.Height, 96d, 96d, PixelFormats.Pbgra32);
+            var renderBitmap = new RenderTargetBitmap((int)size.Width, (int)size.Height, 96d, 96d, PixelFormats.Pbgra32);
             renderBitmap.Render(element);
 
             // Create a file stream for saving image
-            using (FileStream outStream = new FileStream(path, FileMode.Create)) {
+            using (var outStream = new FileStream(path, FileMode.Create)) {
                 // Use png encoder for our data
-                PngBitmapEncoder encoder = new PngBitmapEncoder();
+                var encoder = new PngBitmapEncoder();
                 // push the rendered bitmap to it
                 encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
                 // save the data to the stream

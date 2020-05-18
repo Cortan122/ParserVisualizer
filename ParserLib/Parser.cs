@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 
 namespace ParserLib {
     public class Parser {
@@ -14,7 +9,7 @@ namespace ParserLib {
         }
 
         public ParserHistory Run(string input) {
-            var rtf = File.ReadAllText("parsers/" + this.name + ".rtf");
+            var rtf = File.ReadAllText("parsers/" + name + ".rtf");
             var tree = new ParserHistory(rtf, input);
 
             var process = new Process();
@@ -25,7 +20,7 @@ namespace ParserLib {
             process.OutputDataReceived += (sender, args) => {
                 tree.Add(args.Data);
             };
-            process.StartInfo.FileName = "parsers/" + this.name + ".exe";
+            process.StartInfo.FileName = "parsers/" + name + ".exe";
             process.Start();
             process.BeginOutputReadLine();
 

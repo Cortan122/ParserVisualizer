@@ -1,11 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ParserLib {
     public class HistoryEntry : IEnumerable<HistoryToken> {
@@ -37,7 +33,7 @@ namespace ParserLib {
                 var end = tok.EndPos;
                 if (end == -1) end = CursorPos;
 
-                for (int i = tok.StartPos; i < end; i++) {
+                for (var i = tok.StartPos; i < end; i++) {
                     if (stacks[i] != null) {
                         edges[stacks[i]] = tok;
                     }
@@ -56,7 +52,7 @@ namespace ParserLib {
         }
 
         private void CalculateDisplayLevels(bool orientation = false) {
-            int[] recLvs = new int[CursorPos];
+            var recLvs = new int[CursorPos];
 
             IEnumerable<HistoryToken> t = this.OrderBy(e => -e.RecLevel);
             if (orientation) t = t.Reverse();
@@ -67,7 +63,7 @@ namespace ParserLib {
                 var slice = new ArraySegment<int>(recLvs, tok.StartPos, end - tok.StartPos);
                 tok.DisplayLevel = slice.Max();
 
-                for (int i = tok.StartPos; i < end; i++) {
+                for (var i = tok.StartPos; i < end; i++) {
                     recLvs[i] = tok.DisplayLevel + 1;
                 }
             }

@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using System.Diagnostics;
 
 namespace ParserLib {
     internal class ParserTreeToken {
@@ -23,13 +19,13 @@ namespace ParserLib {
                     .Select(i => (char)Convert.ToUInt16(name.Substring(i * 2 + 1, 2), 16));
                 name = '"' + string.Join("", chars) + '"';
             }
-            this.Parent = parent;
-            this.Name = name;
-            this.Index = index;
-            this.StartPos = startPos;
-            this.RecLevel = recLevel;
-            this.EndPos = -1;
-            this.Dict = new Dictionary<string, int>();
+            Parent = parent;
+            Name = name;
+            Index = index;
+            StartPos = startPos;
+            RecLevel = recLevel;
+            EndPos = -1;
+            Dict = new Dictionary<string, int>();
         }
 
         public override string ToString() {
