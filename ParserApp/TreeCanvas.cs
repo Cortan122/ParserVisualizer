@@ -44,7 +44,7 @@ namespace ParserApp {
             if (inputBox == null) {
                 inputBox = Children.OfType<TextBox>().First();
             }
-            SetTop(inputBox, TextblockTop);
+            SetTop(inputBox, TextblockTop + 4);
             SetLeft(inputBox, TextStart);
             inputBox.Width = pos - TextStart;
             inputBox.Height = FontSize;
