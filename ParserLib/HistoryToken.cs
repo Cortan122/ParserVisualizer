@@ -17,6 +17,8 @@ namespace ParserLib {
             Trimmable = tok.ChildCount == 1 && tok.EndPos >= 0;
         }
 
+        internal HistoryToken() { }
+
         public override string ToString() {
             if (EndPos == -1) return $"{StartPos}:-({Name}, {RecLevel})";
             return $"{StartPos}:{EndPos}({Name}, {RecLevel})";

@@ -32,7 +32,7 @@ namespace ParserLib {
             var tokens = CopyState();
             var rtf = RtfBuilder.Build(OriginalRtf, stack);
             var r = new HistoryEntry(tokens, rtf);
-            history.Add(r);
+            if (!r.isBroken) history.Add(r);
         }
 
         public void Add(string line) {
@@ -78,7 +78,7 @@ namespace ParserLib {
                 t.EndPos = pos;
                 if (words[1] != "rule.match") {
                     t.EndPos = -2;
-                    t.Parent.ChildCount--;
+                    if (t.Parent != null) t.Parent.ChildCount--;
                     var i = state.IndexOf(t);
                     state.RemoveRange(i, state.Count - i);
                 }

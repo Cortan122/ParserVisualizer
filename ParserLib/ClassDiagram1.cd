@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ParserLib.HistoryEntry" BaseTypeListCollapsed="true">
+    <Position X="3.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gCgAAAAAAIAAAFAEAAAgAACAAAAAAAAEAAAgAAAAAAA=</HashCode>
+      <FileName>HistoryEntry.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="edges" />
+      <Field Name="treeRanges" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="ParserLib.HistoryToken">
+    <Position X="0.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAQIAAAAAAEAAAAEAQAAAAACAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HistoryToken.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ParserLib.Parser">
+    <Position X="6" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Parser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ParserLib.ParserHistory" BaseTypeListCollapsed="true">
+    <Position X="6" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgoABAAACAAAABAAGAAAAAAAAAAAAIAEAAAAAAAAAgA=</HashCode>
+      <FileName>ParserHistory.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="history" />
+      <Field Name="stack" />
+      <Field Name="state" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="ParserLib.ParserTreeToken">
+    <Position X="8.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAIAAIAAAEAAAAUAQAAAAAAAAAAAEAAAAAAhA=</HashCode>
+      <FileName>ParserTreeToken.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ParserLib.RtfBuilder">
+    <Position X="8.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAIAgAAASAAAAAAAAAA=</HashCode>
+      <FileName>RtfBuilder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

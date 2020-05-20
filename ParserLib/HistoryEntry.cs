@@ -9,11 +9,16 @@ namespace ParserLib {
         public string RtfGrammar { get; }
         public int CursorPos { get; }
 
+        internal bool isBroken = false;
         private bool isTrimmed = false;
         private Dictionary<HistoryToken, HistoryToken> edges;
 
         internal HistoryEntry(HistoryToken[] ranges, string rtf) {
             RtfGrammar = rtf;
+            if (ranges.Length == 0) {
+                ranges = new HistoryToken[] { new HistoryToken() };
+                isBroken = true;
+            }
             treeRanges = ranges;
             CursorPos = treeRanges.Max(e => Math.Max(e.StartPos, e.EndPos - 1)) + 1;
         }
