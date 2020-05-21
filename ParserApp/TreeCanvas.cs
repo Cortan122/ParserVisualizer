@@ -56,6 +56,8 @@ namespace ParserApp {
             IEnumerable<string> names,
             bool drawText = false
         ) {
+            if (colors.Count == 0) return;
+
             // удаляем все старые кружочки
             foreach (var el in Children.OfType<Ellipse>().ToList()) {
                 Children.Remove(el);

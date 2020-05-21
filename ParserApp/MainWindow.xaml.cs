@@ -187,6 +187,7 @@ namespace ParserApp {
         }
 
         private void RunParser(string input) {
+            if (input == "") return;
             double historyProgress = 0;
             if (theHistory != null) {
                 historyProgress = historyIndex / (double)(theHistory.Count() - 1);
@@ -205,6 +206,7 @@ namespace ParserApp {
         private void SetSpeed(double newValue) {
             if (newValue < 0) newValue = 0;
             if (newValue > 60) newValue = 60;
+            if (double.IsNaN(newValue)) newValue = 4;
 
             speedBox.Text = newValue.ToString("0.###", CultureInfo.InvariantCulture);
             speedSlider.Value = newValue;
@@ -221,7 +223,7 @@ namespace ParserApp {
             try {
                 var str = File.ReadAllText(path);
                 JsonConvert.PopulateObject(str, this);
-                if (colors == null) colors = colorBackup;
+                if (colors == null || colors.Count == 0) colors = colorBackup;
                 reverseButton.IsChecked = isReversed;
                 playButton.Content = isPaused ? "▶" : "⏸";
                 playButton.ToolTip = isPaused ? "Воспроизведение" : "Пауза";
@@ -291,7 +293,15 @@ namespace ParserApp {
 
         private void InputBox_ValueChanged(object o, EventArgs e) {
             inputBox.Opacity = 0;
-            inputString = inputBox.Text;
+            if (inputBox.Text == "") {
+                inputBox.Text = inputString;
+                MessageBox.Show(
+                    "В поле ввода была введена пустая строка, а пустую строку\nнельзя парсить.",
+                    "Входная строка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            } else inputString = inputBox.Text;
         }
 
         private void MainWindow_Drop(object o, DragEventArgs e) {
