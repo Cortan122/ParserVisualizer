@@ -9,6 +9,7 @@
 !ParserLib/**
 !pdfs/
 !pdfs/**
+!README.md
 
 .vs
 .vscode
