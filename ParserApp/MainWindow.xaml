@@ -83,7 +83,7 @@
              <emoji:RichTextBox.Resources>
                 <Style TargetType="Hyperlink">
                     <Setter Property="Cursor" Value="Hand" />
-                    <EventSetter Event="MouseLeftButtonDown" Handler="Hyperlink_MouseLeftButtonDown" />
+                    <EventSetter Event="MouseLeftButtonDown" Handler="HyperlinkClick" />
                 </Style>
             </emoji:RichTextBox.Resources>
         </emoji:RichTextBox>

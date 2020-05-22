@@ -4,21 +4,45 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace ParserLib {
+    /// <summary>
+    /// Строит синтаксическое дерево и хранит каждую его версию
+    /// </summary>
     public class ParserHistory : IEnumerable<HistoryEntry> {
+        /// <summary>
+        /// Внутренний стек, используемый для построения дерева
+        /// </summary>
         private Stack<ParserTreeToken> stack = new Stack<ParserTreeToken>();
+        /// <summary>
+        /// Список узлов, которые сейчас есть в дереве
+        /// </summary>
         private List<ParserTreeToken> state = new List<ParserTreeToken>();
+        /// <summary>
+        /// Предыдущая позиция конца узла
+        /// </summary>
         private int prevPos = -1;
 
         /// <summary>
-        /// Inherited parser parameters.
+        /// Оригинальная грамматика, из которой делаются все остальные
         /// </summary>
         public string OriginalRtf { get; }
+        /// <summary>
+        /// Входная строка
+        /// </summary>
         public string InputString { get; }
 
+        /// <summary>
+        /// Имена всех правил
+        /// </summary>
         public IEnumerable<string> RuleNames => RtfBuilder.GetNames(OriginalRtf);
 
+        /// <summary>
+        /// Список всех старых деревьев
+        /// </summary>
         private List<HistoryEntry> history = new List<HistoryEntry>();
 
+        /// <summary>
+        /// Делает копию поля state
+        /// </summary>
         private HistoryToken[] CopyState() {
             return state.Select(e => e.Clone()).ToArray();
         }
@@ -28,6 +52,9 @@ namespace ParserLib {
             InputString = input;
         }
 
+        /// <summary>
+        /// Сохраняет текущее состояние в поле history
+        /// </summary>
         private void SaveState() {
             var tokens = CopyState();
             var rtf = RtfBuilder.Build(OriginalRtf, stack);
@@ -35,6 +62,11 @@ namespace ParserLib {
             if (!r.isBroken) history.Add(r);
         }
 
+        /// <summary>
+        /// Добавляет узел в дерево.
+        /// Принимает на вход строки от синтаксического анализатора.
+        /// Здесь происходит основное построение дерева
+        /// </summary>
         public void Add(string line) {
             if (line == null) return;
             line = line.Trim();
@@ -87,8 +119,17 @@ namespace ParserLib {
             SaveState();
         }
 
+        /// <summary>
+        /// Реализует интерфейс IEnumerable<HistoryToken>
+        /// </summary>
         public IEnumerator<HistoryEntry> GetEnumerator() => history.GetEnumerator();
+        /// <summary>
+        /// Реализует интерфейс IEnumerable
+        /// </summary>
         IEnumerator IEnumerable.GetEnumerator() => history.GetEnumerator();
+        /// <summary>
+        /// Индексатор
+        /// </summary>
         public HistoryEntry this[int i] => history[i];
     }
 }

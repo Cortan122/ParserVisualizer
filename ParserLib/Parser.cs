@@ -2,12 +2,21 @@ using System.Diagnostics;
 using System.IO;
 
 namespace ParserLib {
+    /// <summary>
+    /// Запуск синтаксического анализатора
+    /// </summary>
     public class Parser {
+        /// <summary>
+        /// Название синтаксического анализатора
+        /// </summary>
         private string name;
         public Parser(string name) {
             this.name = name;
         }
 
+        /// <summary>
+        /// Запускает синтаксический анализатор 
+        /// </summary>
         public ParserHistory Run(string input) {
             var rtf = File.ReadAllText("parsers/" + name + ".rtf");
             var tree = new ParserHistory(rtf, input);

@@ -4,13 +4,34 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace ParserLib {
+    /// <summary>
+    /// Синтаксическое дерево в какой-то момент времени
+    /// </summary>
     public class HistoryEntry : IEnumerable<HistoryToken> {
+        /// <summary>
+        /// Узлы дерева
+        /// </summary>
         private HistoryToken[] treeRanges;
+        /// <summary>
+        /// Описание формальной грамматики в формате RTF
+        /// </summary>
         public string RtfGrammar { get; }
+        /// <summary>
+        /// Индекс последнего анализированного символа
+        /// </summary>
         public int CursorPos { get; }
 
+        /// <summary>
+        /// Сломано ли это дерево и надо ли его отображать
+        /// </summary>
         internal bool isBroken = false;
+        /// <summary>
+        /// Надо ли подравнивать это дерево
+        /// </summary>
         private bool isTrimmed = false;
+        /// <summary>
+        /// Ветки дерева
+        /// </summary>
         private Dictionary<HistoryToken, HistoryToken> edges;
 
         internal HistoryEntry(HistoryToken[] ranges, string rtf) {
@@ -23,6 +44,9 @@ namespace ParserLib {
             CursorPos = treeRanges.Max(e => Math.Max(e.StartPos, e.EndPos - 1)) + 1;
         }
 
+        /// <summary>
+        /// Меняет настройки
+        /// </summary>
         public void SetSettings(bool trim, bool orientation, bool gravity) {
             isTrimmed = trim;
             CalculateDisplayLevels(orientation ^ gravity);
@@ -30,6 +54,9 @@ namespace ParserLib {
             edges = null;
         }
 
+        /// <summary>
+        /// Находит список всех веток дерева, но возвращает словарь, где ключ это узел, а значение это его родитель
+        /// </summary>
         public Dictionary<HistoryToken, HistoryToken> GetEdges() {
             if (this.edges != null) return this.edges;
             var edges = new Dictionary<HistoryToken, HistoryToken>();
@@ -49,6 +76,9 @@ namespace ParserLib {
             return edges;
         }
 
+        /// <summary>
+        /// Переворачивает дерево
+        /// </summary>
         private void InvertDisplayLevels() {
             var maxDisplayLevel = this.Max(e => e.DisplayLevel);
             foreach (var tok in this) {
@@ -56,6 +86,9 @@ namespace ParserLib {
             }
         }
 
+        /// <summary>
+        /// Рассчитывает гравитацию
+        /// </summary>
         private void CalculateDisplayLevels(bool orientation = false) {
             var recLvs = new int[CursorPos];
 
@@ -74,16 +107,25 @@ namespace ParserLib {
             }
         }
 
+        /// <summary>
+        /// Переопределяет метод класса Object
+        /// </summary>
         public override string ToString() {
             return string.Join(" ", (object[])treeRanges);
         }
 
+        /// <summary>
+        /// Реализует интерфейс IEnumerable<HistoryToken>
+        /// </summary>
         public IEnumerator<HistoryToken> GetEnumerator() {
             var t = treeRanges.Where(e => !e.Name.StartsWith("\""));
             if (isTrimmed) t = t.Where(e => !e.Trimmable);
             return t.GetEnumerator();
         }
 
+        /// <summary>
+        /// Реализует интерфейс IEnumerable
+        /// </summary>
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
         }

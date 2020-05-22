@@ -1,11 +1,32 @@
 namespace ParserLib {
+    /// <summary>
+    /// ParserTreeToken но без служебных полей
+    /// </summary>
     public class HistoryToken {
+        /// <summary>
+        /// Название правила, по которому был постоен этот узел
+        /// </summary>
         public string Name { get; }
+        /// <summary>
+        /// Индекс первого символа, входящего в этот узел
+        /// </summary>
         public int StartPos { get; }
+        /// <summary>
+        /// Индекс последнего символа, входящего в этот узел
+        /// </summary>
         public int EndPos { get; }
 
+        /// <summary>
+        /// Глубина этого узла в дереве
+        /// </summary>
         internal int RecLevel { get; }
+        /// <summary>
+        /// Можно ли этот узел убирать при обрезке дерева
+        /// </summary>
         public bool Trimmable { get; }
+        /// <summary>
+        /// Визуальный уровень узла
+        /// </summary>
         public int DisplayLevel { get; internal set; }
 
         internal HistoryToken(ParserTreeToken tok) {
@@ -19,6 +40,9 @@ namespace ParserLib {
 
         internal HistoryToken() { }
 
+        /// <summary>
+        /// Переопределяет метод класса Object
+        /// </summary>
         public override string ToString() {
             if (EndPos == -1) return $"{StartPos}:-({Name}, {RecLevel})";
             return $"{StartPos}:{EndPos}({Name}, {RecLevel})";

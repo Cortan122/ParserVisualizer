@@ -7,21 +7,78 @@ using System.Windows.Shapes;
 using ParserLib;
 
 namespace ParserApp {
+    /// <summary>
+    /// Отрисовка синтаксического дерева и палитры его цветов
+    /// </summary>
     internal class TreeCanvas : Canvas {
+        /// <summary>
+        /// Шрифт, который везде используется
+        /// </summary>
         private readonly FontFamily font = new FontFamily("Consolas");
+
+        /// <summary>
+        /// Ставит в соответствие названия правил и их цвета
+        /// </summary>
         private Dictionary<string, Brush> colorDict;
+
+        /// <summary>
+        /// Поле ввода, где пользователь вводит строку, синтаксический анализ которой будет визуализироваться.
+        /// </summary>
         private TextBox inputBox;
+
+        /// <summary>
+        /// Тот кадр, который сейчас нарисован
+        /// </summary>
         private HistoryEntry lastHistoryEntry;
+
+        /// <summary>
+        /// Нарисовано ли сейчас дерево в режиме новичка
+        /// </summary>
         private bool lastHelp;
+
+        /// <summary>
+        /// Ширина каждого символа в строке
+        /// </summary>
         private const int CharWidth = 20;
+
+        /// <summary>
+        /// Начальная позиция строки
+        /// </summary>
         private const int TextStart = 15;
+
+        /// <summary>
+        /// Размер шрифта
+        /// </summary>
         private const int FontSize = 26;
+
+        /// <summary>
+        /// Размер шрифта подписей к цветам палитры
+        /// </summary>
         private const int LegendFontSize = 12;
+
+        /// <summary>
+        /// Позиция поля ввода
+        /// </summary>
         private const int TextblockTop = 10;
+
+        /// <summary>
+        /// Позиция верхушки дерева
+        /// </summary>
         private const int TreeTop = 50;
+
+        /// <summary>
+        /// Вертикальное расстояние между узлами дерева
+        /// </summary>
         private const int TreeVSpace = 15;
+
+        /// <summary>
+        /// Высота каждого узла дерева
+        /// </summary>
         private const int RectHeight = 10;
 
+        /// <summary>
+        /// Рисует строку
+        /// </summary>
         public void WriteString(string text) {
             var pos = TextStart;
 
@@ -51,6 +108,9 @@ namespace ParserApp {
             inputBox.FontSize = FontSize - 8;
         }
 
+        /// <summary>
+        /// Рисует цветовую палитру
+        /// </summary>
         public void InitLegend(
             List<Brush> colors,
             IEnumerable<string> names,
@@ -110,6 +170,9 @@ namespace ParserApp {
             }
         }
 
+        /// <summary>
+        /// Рисует один узел дерева
+        /// </summary>
         private void DrawRect(HistoryToken tok, int pos) {
             var rect = new Border();
             rect.CornerRadius = new CornerRadius(5, 5, 5, 5);
@@ -131,6 +194,9 @@ namespace ParserApp {
             Children.Add(rect);
         }
 
+        /// <summary>
+        /// Рисует дерево
+        /// </summary>
         public void DisplayHistoryEntry(HistoryEntry entry, bool help) {
             lastHistoryEntry = entry;
             lastHelp = help;
@@ -152,6 +218,9 @@ namespace ParserApp {
             if (help) DrawConventionalTree(entry.GetEdges());
         }
 
+        /// <summary>
+        /// Рисует ветки дерева
+        /// </summary>
         private void DrawConventionalTree(Dictionary<HistoryToken, HistoryToken> edges) {
             foreach (var edge in edges) {
                 var line = new Line();
@@ -165,6 +234,9 @@ namespace ParserApp {
             }
         }
 
+        /// <summary>
+        /// Считает X координату центра узла дерева
+        /// </summary>
         private double GetNodeCenterX(HistoryToken node) {
             var end = node.EndPos;
             if (end == -1) {
@@ -174,11 +246,17 @@ namespace ParserApp {
             return TextStart + node.StartPos * CharWidth + (end - node.StartPos) * CharWidth / 2.0;
         }
 
+        /// <summary>
+        /// Считает Y координату центра узла дерева
+        /// </summary>
         private double GetNodeCenterY(HistoryToken node) {
             return TreeTop + node.DisplayLevel * TreeVSpace + RectHeight / 2.0;
         }
 
 
+        /// <summary>
+        /// Запрашивает у пользователя собственный цвет, открывая диалоговое окно
+        /// </summary>
         static private Brush GetColor() {
             var dia = new System.Windows.Forms.ColorDialog();
             if (dia.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
