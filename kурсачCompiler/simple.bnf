@@ -1,0 +1,4 @@
+sum ::= product "+" sum | product;
+product ::= primary "*" product | primary;
+primary ::= "(" sum ")" | number;
+number ::= /[0-9]+/;

@@ -10,9 +10,17 @@
 !pdfs/
 !pdfs/**
 !README.md
+!kурсачCompiler/
+!kурсачCompiler/**
 
 .vs
 .vscode
 obj
 bin
 *.csproj.user
+kурсачCompiler/*.exe
+kурсачCompiler/*.js
+kурсачCompiler/*.o
+kурсачCompiler/*.rtf
+kурсачCompiler/temp.data
+kурсачCompiler/simple.pegjs
